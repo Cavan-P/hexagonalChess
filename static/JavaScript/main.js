@@ -9,7 +9,7 @@ ctx.textAlign = "center"
 
 /** Debug options */
 const showCoords = !true
-const showCellNumbers = !true
+const showCellNumbers = true
 const showOccupiedBy = !true
 
 const showOccupiedPieceCell = !true
@@ -43,6 +43,8 @@ var triggerCheck = false
 var checkedKing = null
 var whiteKingCell = null
 var blackKingCell = null
+
+var noMovesFound = false
 
 var turn = 0
 
@@ -108,14 +110,22 @@ init = _ => {
         
     }
 
+    ctx.font = '20px sans-serif'
     ctx.fillStyle = '#000'
-    ctx.fillText(`${turn % 2 ? 'Black' : 'White'}'s Move`, window.innerWidth - 50, 15)
+    ctx.fillText(`${turn % 2 ? 'Black' : 'White'}'s Move`, window.innerWidth - 100, 25)
     ctx.fillStyle = 'rgba(0, 0, 0, 0)'
 
     if(checkedKing){
         checkCell = checkedKing == 'white' ? whiteKingCell : blackKingCell
         ctx.strokeStyle = 'rgba(200, 0, 0, 0.5)'
         drawHexagon(cells[checkCell].x, cells[checkCell].y, cellSize, 'rgba(0, 0, 0, 0)', true)
+    }
+
+    if(checkedKing && noMovesFound){
+        console.log("Checkmate!")
+    }
+    if(!checkedKing && noMovesFound){
+        console.log("Stalemate!")
     }
 
     pieces = pieces.filter(p => !p.captured)

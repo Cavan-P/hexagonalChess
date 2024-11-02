@@ -66,7 +66,7 @@ function sortCapturedPieces() {
 function displayCapturedPieces(ctx) {
     let img = document.getElementById("pieces")
 
-    const pieceSize = 30
+    const pieceSize = 40
     const offsetYBlack = window.innerHeight - 10 - pieceSize
     const offsetYWhite = 10
     const offsetX = 10

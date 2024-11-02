@@ -135,12 +135,203 @@ def drop_check():
     data = request.get_json()
 
     fen = data['fen']
+    prev_fen = data['prevFen']
     piece = data['piece']
-    color = 'black' if piece.isupper() else 'white'
+    color = 'black' if piece.isupper() else 'white'#Backwards because I need to check if this move put the other color in check
 
     check = is_check(fen, color)
+    moves_exist = False
 
-    return jsonify({'check': check})
+    cells = moveLogic.initialize_board(fen)
+
+    #Check legal moves of white
+    if color == 'white':
+        for c in cells:
+            cell = cells[c]
+            #print(str(cell))
+            if cell and cell.occupied_by and cell.occupied_by.isupper():
+
+                p = cell.occupied_by
+
+                if p == 'P':
+                    hypothetical_moves = move_like_white_pawn(cell.num, fen, prev_fen)[0]
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
+                    ]
+
+                    if hypothetical_moves:
+                        print('Pawn', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+                if p == 'B':
+                    hypothetical_moves = move_like_bishop(cell.num, fen, 'white')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
+                    ]
+
+                    if hypothetical_moves:
+                        print('Bishop', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+                if p == 'N':
+                    hypothetical_moves = move_like_knight(cell.num, fen, 'white')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
+                    ]
+
+                    if hypothetical_moves:
+                        print('Knight', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+                if p == 'R':
+                    hypothetical_moves = move_like_rook(cell.num, fen, 'white')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
+                    ]
+
+                    if hypothetical_moves:
+                        print('Rook', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+                if p == 'Q':
+                    hypothetical_moves = move_like_queen(cell.num, fen, 'white')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
+                    ]
+
+                    if hypothetical_moves:
+                        print('Queen', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+                if p == 'K':
+                    hypothetical_moves = move_like_king(cell.num, fen, 'white')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
+                    ]
+
+                    if hypothetical_moves:
+                        print('King', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+    #Check legal moves of black
+    if color == 'black':
+        for c in cells:
+            cell = cells[c]
+            #print(str(cell))
+            if cell and cell.occupied_by and cell.occupied_by.islower():
+
+                p = cell.occupied_by
+
+                if p == 'p':
+                    hypothetical_moves = move_like_black_pawn(cell.num, fen, prev_fen)[0]
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
+                    ]
+
+                    if hypothetical_moves:
+                        moves_exist = True
+                        print('pawn', hypothetical_moves)
+                        break
+
+                if p == 'b':
+                    hypothetical_moves = move_like_bishop(cell.num, fen, 'black')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
+                    ]
+
+                    if hypothetical_moves:
+                        moves_exist = True
+                        print('bishop', hypothetical_moves)
+                        break
+
+                if p == 'n':
+                    hypothetical_moves = move_like_knight(cell.num, fen, 'black')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
+                    ]
+
+                    if hypothetical_moves:
+                        print('knight', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+                if p == 'r':
+                    hypothetical_moves = move_like_rook(cell.num, fen, 'black')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
+                    ]
+
+                    if hypothetical_moves:
+                        print('rook', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+                if p == 'q':
+                    hypothetical_moves = move_like_queen(cell.num, fen, 'black')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
+                    ]
+
+                    if hypothetical_moves:
+                        print('queen', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+                if p == 'k':
+                    hypothetical_moves = move_like_king(cell.num, fen, 'black')
+
+                    valid_moves = hypothetical_moves
+
+                    hypothetical_moves = [
+                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
+                    ]
+
+                    if hypothetical_moves:
+                        print('king', hypothetical_moves)
+                        moves_exist = True
+                        break
+
+
+    return jsonify({'check': check, 'movesExist': moves_exist})
 
 """
     Validate the moves for pawns - left separate due to en passant shennanigans

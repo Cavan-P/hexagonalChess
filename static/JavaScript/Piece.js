@@ -166,6 +166,7 @@ class Piece {
                     currentFenString = boardToFen()
 
                     dropData.fen = currentFenString
+                    dropData.prevFen = previousFenString
                     dropData.piece = this.piece
 
                     this.checkDrop()
@@ -236,6 +237,8 @@ class Piece {
             else{
                 checkedKing = null
             }
+
+            if(!data.movesExist) noMovesFound = true
 
             whiteKingCell = cells.findIndex(cell => cell.occupiedBy == 'K')
             blackKingCell = cells.findIndex(cell => cell.occupiedBy == 'k')

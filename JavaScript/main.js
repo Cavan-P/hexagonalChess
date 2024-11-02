@@ -38,7 +38,6 @@ let isPieceSelected = false
 var triggerPassant = false
 var deleteCell = null
 
-
 document.onmousemove = event => {
     mouseX = event.clientX
     mouseY = event.clientY

@@ -50,11 +50,16 @@ class Cell {
             ctx.font = '10px sans-serif'
             ctx.fillText(this.occupiedBy, this.x, this.y + cellSize / 1.6)
         }
-        if(this.occupied){
+        /*if(this.occupied){
             drawHexagon(this.x, this.y, cellSize, '#FF00005C', false)
-        }
+        }*/
         if(this.landable){
-            drawHexagon(this.x, this.y, cellSize, 'rgba(0, 0, 0, 0)', true)
+            if(this.occupiedBy == 'k' || this.occupiedBy == 'K'){
+                drawHexagon(this.x, this.y, cellSize, 'rgba(200, 0, 0, 0.4)', false)
+            }
+            else {
+                drawHexagon(this.x, this.y, cellSize, 'rgba(0, 0, 0, 0)', true)
+            }
         }
     }
 }

@@ -38,6 +38,9 @@ let isPieceSelected = false
 var triggerPassant = false
 var deleteCell = null
 
+var triggerCheck = false
+var checkCell = null
+
 document.onmousemove = event => {
     mouseX = event.clientX
     mouseY = event.clientY
@@ -124,6 +127,10 @@ init = _ => {
         pieces = pieces.filter(piece => piece.occupyingCell.num != deleteCell)
         triggerPassant = false
         deleteCell = null
+    }
+
+    if(triggerCheck){
+        drawHexagon(cells[checkCell].x, cells[checkCell].y, cellSize, 'rgba(200, 0, 0, 0.4)', false)
     }
 
     //console.log(capturedPieces)

@@ -55,7 +55,9 @@ class Cell {
         }*/
         if(this.landable){
             if(this.occupiedBy == 'k' || this.occupiedBy == 'K'){
-                drawHexagon(this.x, this.y, cellSize, 'rgba(200, 0, 0, 0.4)', false)
+                triggerCheck = true
+                checkCell = this.num
+                //drawHexagon(this.x, this.y, cellSize, 'rgba(200, 0, 0, 0.4)', false)
             }
             else {
                 drawHexagon(this.x, this.y, cellSize, 'rgba(0, 0, 0, 0)', true)

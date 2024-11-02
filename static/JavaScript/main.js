@@ -32,6 +32,7 @@ var populated = false
 const FEN = 'bqknbnr2rp1b1p1p2p2p1p3pp4p993P4PP3P1P2P2P1P1B1PR2RNBNQKB'
 
 var moveData = {}
+var dropData = {}
 var currentFenString = boardToFen()
 var previousFenString = boardToFen()
 let isPieceSelected = false
@@ -39,7 +40,9 @@ var triggerPassant = false
 var deleteCell = null
 
 var triggerCheck = false
-var checkCell = null
+var checkedKing = null
+var whiteKingCell = null
+var blackKingCell = null
 
 var turn = 0
 
@@ -90,6 +93,7 @@ init = _ => {
     triggerCheck = false
     checkCell = null
 
+    ctx.strokeStyle = '#000'
     drawBoard(cellSize, 0, 1)
     drawBoard(cellSize, [
         '#D18B47FF',     /*  Dark cell    */
@@ -102,6 +106,12 @@ init = _ => {
         populated = true
         populateBoard(FEN, cells)
         
+    }
+
+    if(checkedKing){
+        checkCell = checkedKing == 'white' ? whiteKingCell : blackKingCell
+        ctx.strokeStyle = 'rgba(200, 0, 0, 0.5)'
+        drawHexagon(cells[checkCell].x, cells[checkCell].y, cellSize, 'rgba(0, 0, 0, 0)', true)
     }
 
     pieces = pieces.filter(p => !p.captured)
@@ -130,14 +140,10 @@ init = _ => {
     }
 
     if(triggerPassant){
-        console.log("Triggering passant")
+        //console.log("Triggering passant")
         pieces = pieces.filter(piece => piece.occupyingCell.num != deleteCell)
         triggerPassant = false
         deleteCell = null
-    }
-
-    if(triggerCheck){
-        drawHexagon(cells[checkCell].x, cells[checkCell].y, cellSize, 'rgba(200, 0, 0, 0.4)', false)
     }
 
     //console.log(capturedPieces)

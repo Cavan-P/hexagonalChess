@@ -21,7 +21,7 @@ the project, I'll come back to it and make this better later on.
 
 ### TODO
 - [ ] Visuals
-  - [ ] Persistent check highlight
+  - [X] Persistent check highlight
   - [ ] Display captured pieces
   - [ ] "Opponent's move" text
 
@@ -32,8 +32,8 @@ the project, I'll come back to it and make this better later on.
 
   - [ ] Checkmate
   - [ ] Stalemate
-  - [ ] Turn system
-  - [ ] Computer Oppoenent
+  - [X] Turn system
+  - [ ] Computer Opponent
 
 - [ ] KNOWN BUGS
   - [X] Only legal move sends new FEN strings

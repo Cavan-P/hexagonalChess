@@ -66,7 +66,12 @@ class Piece {
             }
 
             if(this.over && !this.dragging && !pressed){
-                drawHexagon(this.occupyingCell.x, this.occupyingCell.y, cellSize, '#000000AA', false)
+                if(isUppercase(this.piece) && turn % 2 == 0){
+                    drawHexagon(this.occupyingCell.x, this.occupyingCell.y, cellSize, '#000000AA', false)
+                }
+                if(isLowercase(this.piece) && turn % 2){
+                    drawHexagon(this.occupyingCell.x, this.occupyingCell.y, cellSize, '#000000AA', false)
+                }
                 if(!turn) currentFenString = boardToFen()
             }
 
@@ -74,8 +79,8 @@ class Piece {
                 this.selected = true
                 
                 this.sendData()
-                console.log("After sent data prev fen: ", previousFenString)
-                console.log("After sent data current fen: ", currentFenString)
+                //console.log("After sent data prev fen: ", previousFenString)
+                //console.log("After sent data current fen: ", currentFenString)
             }
 
             if(this.over && this.dragging && this.selected){
@@ -160,13 +165,18 @@ class Piece {
                     previousFenString = currentFenString
                     currentFenString = boardToFen()
 
+                    dropData.fen = currentFenString
+                    dropData.piece = this.piece
+
+                    this.checkDrop()
+
                     this.landedLegalMove = false
 
                     turn ++
 
-                    console.log("Prev: " + previousFenString)
-                    console.log("Curr: " + currentFenString)
-                    console.log(`${turn % 2 == 0 ? 'white\'s' : 'black\'s'} move`)
+                    //console.log("Prev: " + previousFenString)
+                    //console.log("Curr: " + currentFenString)
+                    //console.log(`${turn % 2 == 0 ? 'white\'s' : 'black\'s'} move`)
                 }
             }
         }
@@ -203,6 +213,32 @@ class Piece {
                 console.log("Piece has no legal moves")
                 moveData = {}
             }
+        })
+        .catch(error => {
+            console.error(error)
+        })
+    }
+
+    checkDrop(){
+        fetch('http://localhost:8000/drop_check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dropData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            //console.log(data.check)
+            if(data.check){
+                checkedKing = data.check
+            }
+            else{
+                checkedKing = null
+            }
+
+            whiteKingCell = cells.findIndex(cell => cell.occupiedBy == 'K')
+            blackKingCell = cells.findIndex(cell => cell.occupiedBy == 'k')
         })
         .catch(error => {
             console.error(error)

@@ -135,8 +135,12 @@ def drop_check():
     data = request.get_json()
 
     fen = data['fen']
+    piece = data['piece']
+    color = 'black' if piece.isupper() else 'white'
 
-    return fen
+    check = is_check(fen, color)
+
+    return jsonify({'check': check})
 
 """
     Validate the moves for pawns - left separate due to en passant shennanigans

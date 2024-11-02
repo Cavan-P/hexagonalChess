@@ -22,6 +22,8 @@ class Piece {
         this.validMoves = []
         this.enPassantCell = null
         this.passedPawnPassant = null
+
+        this.landedLegalMove = false
     }
 
     findClosestCell(cells){
@@ -65,13 +67,15 @@ class Piece {
 
             if(this.over && !this.dragging && !pressed){
                 drawHexagon(this.occupyingCell.x, this.occupyingCell.y, cellSize, '#000000AA', false)
-                
-                currentFenString = boardToFen()
+                if(!turn) currentFenString = boardToFen()
             }
 
             if(this.over && this.dragging && !this.selected){
                 this.selected = true
+                
                 this.sendData()
+                console.log("After sent data prev fen: ", previousFenString)
+                console.log("After sent data current fen: ", currentFenString)
             }
 
             if(this.over && this.dragging && this.selected){
@@ -80,8 +84,8 @@ class Piece {
                 drawHexagon(targetCell.x, targetCell.y, cellSize, 'rgba(0, 100, 0, 0.4)', false)
                 //Cell it'll land on
                 drawHexagon(this.occupyingCell.x, this.occupyingCell.y, cellSize, 'rgba(0, 200, 0, 0.4)', false)
-
-                previousFenString = currentFenString
+                
+                //previousFenString = currentFenString
                 
                 for(let cell of cells){
                     if(this.validMoves.includes(cell.num)){
@@ -102,12 +106,18 @@ class Piece {
                     this.y = this.occupyingCell.y
 
                     this.assignCurrentCell(cells)
+
+                    this.landedLegalMove = false
+
+                    //this.currentFenString = boardToFen()
                 }
                 else {
                     this.assignCurrentCell(cells)
 
                     this.x = this.occupyingCell.x
                     this.y = this.occupyingCell.y
+
+                    this.landedLegalMove = true
 
                     if(this.enPassantCell && this.occupyingCell.num == this.enPassantCell){
 
@@ -142,15 +152,24 @@ class Piece {
                     this.timeSinceMove = 0
                     this.homeCell = this.occupyingCell
 
-                    //previousFenString = currentFenString
+                    ////previousFenString = currentFenString
+                    //currentFenString = boardToFen()
+                }
+
+                if(this.landedLegalMove){
+                    previousFenString = currentFenString
                     currentFenString = boardToFen()
 
-                    //console.log("Previous Fen: " + previousFenString)
-                    //console.log("Current Fen: " + currentFenString)
+                    this.landedLegalMove = false
+
+                    turn ++
+
+                    console.log("Prev: " + previousFenString)
+                    console.log("Curr: " + currentFenString)
+                    console.log(`${turn % 2 == 0 ? 'white\'s' : 'black\'s'} move`)
                 }
             }
         }
-
     }
 
     sendData(){

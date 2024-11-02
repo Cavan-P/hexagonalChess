@@ -36,6 +36,6 @@ the project, I'll come back to it and make this better later on.
   - [ ] Computer Oppoenent
 
 - [ ] KNOWN BUGS
-  - [ ] Only legal move sends new FEN strings
+  - [X] Only legal move sends new FEN strings
 
 

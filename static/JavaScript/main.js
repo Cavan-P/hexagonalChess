@@ -8,7 +8,7 @@ ctx.textBaseline = "middle"
 ctx.textAlign = "center"
 
 /** Debug options */
-const showCoords = !true
+const showCoords = true
 const showCellNumbers = !true
 const showOccupiedBy = !true
 
@@ -31,7 +31,7 @@ var sze = 60
 var populated = false
 const FEN = 'bqknbnr2rp1b1p1p2p2p1p3pp4p993P4PP3P1P2P2P1P1B1PR2RNBNQKB'
 
-let moveData = {}
+var moveData = {}
 var currentFenString = boardToFen()
 var previousFenString = boardToFen()
 let isPieceSelected = false
@@ -40,6 +40,8 @@ var deleteCell = null
 
 var triggerCheck = false
 var checkCell = null
+
+var turn = 0
 
 document.onmousemove = event => {
     mouseX = event.clientX
@@ -59,10 +61,11 @@ document.onmousedown = event => {
     pressed = true
 
     for(let piece of pieces){
-        if(piece.over){
-            piece.dragging = true
-            isPieceSelected = true
-            
+        if(!(turn % 2)){
+            if(piece.over && isUppercase(piece.piece)) piece.dragging = true, isPieceSelected = true
+        }
+        else {
+            if(piece.over && isLowercase(piece.piece)) piece.dragging = true, isPieceSelected = true
         }
     }
 }
@@ -84,6 +87,9 @@ init = _ => {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.fill()
 
+    triggerCheck = false
+    checkCell = null
+
     drawBoard(cellSize, 0, 1)
     drawBoard(cellSize, [
         '#D18B47FF',     /*  Dark cell    */
@@ -95,6 +101,7 @@ init = _ => {
     if(!populated){
         populated = true
         populateBoard(FEN, cells)
+        
     }
 
     pieces = pieces.filter(p => !p.captured)

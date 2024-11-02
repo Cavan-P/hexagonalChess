@@ -129,6 +129,15 @@ def find_legal_moves():
 
     return jsonify({"moves": valid_moves, "enpassant": [en_passant_target_cell, en_passant_passed_pawn]})
     
+
+@app.route('/drop_check', methods=['POST'])
+def drop_check():
+    data = request.get_json()
+
+    fen = data['fen']
+
+    return fen
+
 """
     Validate the moves for pawns - left separate due to en passant shennanigans
 """

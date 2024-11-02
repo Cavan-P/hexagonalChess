@@ -15,15 +15,11 @@ Check is actually functional, but at the moment there is no checkmate or stalema
 My methods of processing check are inefficient but enough for me to continue on with
 the project, I'll come back to it and make this better later on.
 
-
-
-
-
 ### TODO
-- [ ] Visuals
+- [X] Visuals
   - [X] Persistent check highlight
-  - [ ] Display captured pieces
-  - [ ] "Opponent's move" text
+  - [X] Display captured pieces
+  - [X] "Opponent's move" text
 
 - [ ] Mechanics
   - [X] Legal moves

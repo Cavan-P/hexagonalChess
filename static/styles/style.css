@@ -3,3 +3,23 @@ body {
     padding: 0px;
     margin: 0px;
 }
+
+#captured-pieces {
+    position: fixed;
+    top: 10px; /* Adjust as needed */
+    left: 10px; /* Adjust as needed */
+    display: flex;
+    flex-direction: column;
+}
+
+.captured-container {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+}
+
+.captured-piece {
+    width: 30px; /* Set the size for your icons */
+    height: 30px;
+    margin-right: 5px; /* Space between icons */
+}

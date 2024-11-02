@@ -8,7 +8,7 @@ ctx.textBaseline = "middle"
 ctx.textAlign = "center"
 
 /** Debug options */
-const showCoords = true
+const showCoords = !true
 const showCellNumbers = !true
 const showOccupiedBy = !true
 
@@ -108,6 +108,10 @@ init = _ => {
         
     }
 
+    ctx.fillStyle = '#000'
+    ctx.fillText(`${turn % 2 ? 'Black' : 'White'}'s Move`, window.innerWidth - 50, 15)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0)'
+
     if(checkedKing){
         checkCell = checkedKing == 'white' ? whiteKingCell : blackKingCell
         ctx.strokeStyle = 'rgba(200, 0, 0, 0.5)'
@@ -134,6 +138,7 @@ init = _ => {
                 p2.captured = true
                 capturedPieces.push(p2.piece)
                 
+                
                 break
             }
         }
@@ -141,10 +146,13 @@ init = _ => {
 
     if(triggerPassant){
         //console.log("Triggering passant")
+        capturedPieces.push(cells[deleteCell].occupiedBy == 'p' ? 'p' : 'P')
         pieces = pieces.filter(piece => piece.occupyingCell.num != deleteCell)
         triggerPassant = false
         deleteCell = null
     }
+
+    displayCapturedPieces(ctx)
 
     //console.log(capturedPieces)
 

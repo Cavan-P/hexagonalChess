@@ -251,53 +251,53 @@ class Piece {
 
             switch(this.piece){
                 case 'p':
-                //black pawn
-                ctx.drawImage(img, 1000, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'P':
-                //white pawn
-                ctx.drawImage(img, 1000, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'r':
-                //black rook
-                ctx.drawImage(img, 800, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'R':
-                //white rook
-                ctx.drawImage(img, 800, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'n':
-                //black knight
-                ctx.drawImage(img, 600, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'N':
-                //white knight
-                ctx.drawImage(img, 600, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'b':
-                //black bishop
-                ctx.drawImage(img, 400, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'B':
-                //white bishop
-                ctx.drawImage(img, 400, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'q':
-                //black queen
-                ctx.drawImage(img, 200, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'Q':
-                //white queen
-                ctx.drawImage(img, 200, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'k':
-                //black king
-                ctx.drawImage(img, 0, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
-            case 'K':
-                //white king
-                ctx.drawImage(img, 0, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
-            break;
+                    //black pawn
+                    ctx.drawImage(img, 1000, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'P':
+                    //white pawn
+                    ctx.drawImage(img, 1000, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'r':
+                    //black rook
+                    ctx.drawImage(img, 800, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'R':
+                    //white rook
+                    ctx.drawImage(img, 800, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'n':
+                    //black knight
+                    ctx.drawImage(img, 600, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'N':
+                    //white knight
+                    ctx.drawImage(img, 600, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'b':
+                    //black bishop
+                    ctx.drawImage(img, 400, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'B':
+                    //white bishop
+                    ctx.drawImage(img, 400, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'q':
+                    //black queen
+                    ctx.drawImage(img, 200, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'Q':
+                    //white queen
+                    ctx.drawImage(img, 200, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'k':
+                    //black king
+                    ctx.drawImage(img, 0, 200, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
+                case 'K':
+                    //white king
+                    ctx.drawImage(img, 0, 0, 200, 200, this.x - sze / 2, this.y - sze / 2, sze, sze);
+                break;
             }
         }
 

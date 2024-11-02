@@ -161,7 +161,7 @@ class Piece {
 
         //console.log(moveData.fen, moveData.piece, moveData.startingCell)
 
-        fetch('http://127.0.0.1:5000/find_legal_moves', {
+        fetch('http://localhost:8000/find_legal_moves', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

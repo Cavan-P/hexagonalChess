@@ -36,6 +36,11 @@ let FEN = 'bqknbnr2rp1b1p1p2p2p1p3pp4p993P4PP3P1P2P2P1P1B1PR2RNBNQKB'
 //Force computer to en passant
 //FEN = 'k93R5B1Q7NB94p91P5P9P89K'
 
+//Queen doesn't have full range of motion - black king moved 8-7, queen now stops at 8
+FEN = '8k3N1p3Pp7ppp92Q3p1R3P4P4PN3P4PK1P1P1B1P3R5B'
+//Another one - King moved 24-13, queen now stops at 24
+//FEN = 'q3b1r5b1p4p1pp1k1R1rp2PP1P1n1PP4P9995B1P3RNB2KB'
+
 var moveData = {}
 var dropData = {}
 var currentFenString = boardToFen()

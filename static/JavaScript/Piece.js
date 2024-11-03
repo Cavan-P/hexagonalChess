@@ -175,8 +175,8 @@ class Piece {
 
                     turn ++
 
-                    //console.log("Prev: " + previousFenString)
-                    //console.log("Curr: " + currentFenString)
+                    console.log("Prev: " + previousFenString)
+                    console.log("Curr: " + currentFenString)
                     //console.log(`${turn % 2 == 0 ? 'white\'s' : 'black\'s'} move`)
                 }
             }

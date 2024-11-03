@@ -8,9 +8,9 @@ ctx.textBaseline = "middle"
 ctx.textAlign = "center"
 
 /** Debug options */
-const showCoords = !true
-const showCellNumbers = true
-const showOccupiedBy = !true
+const showCoords = true
+const showCellNumbers = !true
+const showOccupiedBy = true
 
 const showOccupiedPieceCell = !true
 
@@ -47,6 +47,8 @@ var blackKingCell = null
 var noMovesFound = false
 
 var turn = 0
+
+var sentComputerMove = false
 
 document.onmousemove = event => {
     mouseX = event.clientX
@@ -114,6 +116,12 @@ init = _ => {
     ctx.fillStyle = '#000'
     ctx.fillText(`${turn % 2 ? 'Black' : 'White'}'s Move`, window.innerWidth - 100, 25)
     ctx.fillStyle = 'rgba(0, 0, 0, 0)'
+
+    //If it's black's move
+    if(turn % 2 && !sentComputerMove){
+        sentComputerMove = true
+        sendForComputerMove()
+    }
 
     if(checkedKing){
         checkCell = checkedKing == 'white' ? whiteKingCell : blackKingCell

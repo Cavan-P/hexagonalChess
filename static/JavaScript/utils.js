@@ -102,8 +102,45 @@ function displayCapturedPieces(ctx) {
             );
         }
     })
+}
 
-    
+function sendForComputerMove(){
+    fetch('http://localhost:8000/computer_move', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({fen: currentFenString, prevFen: previousFenString})
+    })
+    .then(response => response.json())
+    .then(data => {
+        
+        let startingCell = cells[data.startingCell]
+        let targetCell = cells[data.targetCell]
+        let movedPiece = startingCell.occupiedBy
 
-    //console.log(capturedPieces)
+        //targetCell.occupiedBy = movedPiece
+       // targetCell.occupied = true
+
+        //startingCell.occupied = false
+        //startingCell.occupiedBy = ''
+
+        movedPiece = pieces[pieces.findIndex(piece => piece.occupyingCell == startingCell)]
+
+        console.log(movedPiece.piece)
+
+        movedPiece.x = targetCell.x
+        movedPiece.y = targetCell.y
+
+        movedPiece.assignCurrentCell(cells)
+
+        movedPiece.landedLegalMove = true
+
+        currentFenString = boardToFen()
+
+        console.log(currentFenString)
+
+        turn++
+        sentComputerMove = false
+    })
 }

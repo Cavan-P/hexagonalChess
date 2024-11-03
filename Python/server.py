@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import moveLogic
 import copy
+import random
 
 app = Flask(__name__, static_folder='../static')
 CORS(app)
@@ -154,6 +155,36 @@ def drop_check():
 
 
     return jsonify({'check': check, 'movesExist': moves_exist})
+
+
+@app.route('/computer_move', methods=['POST'])
+def computer_move():
+    data = request.get_json()
+
+    fen = data['fen']
+    prev_fen = data['prevFen']
+    cells = moveLogic.initialize_board(fen)
+
+    living_black_pieces = {char for char in fen if char.islower()}
+
+    while living_black_pieces:
+        selected_piece = random.choice(list(living_black_pieces))
+
+        selected_piece_cells = [cell for cell in cells if cells[cell].occupied_by == selected_piece]
+
+        starting_cell = random.choice(selected_piece_cells) if len(selected_piece_cells) > 1 else selected_piece_cells[0]
+
+        legal_cells = find_legal_from_cell(fen, prev_fen, starting_cell)
+
+        if legal_cells:
+            target_cell = random.choice(legal_cells)
+            return jsonify({'startingCell': starting_cell, 'targetCell': target_cell})
+        
+        print(f"No legal moves for {selected_piece}, reselecting...")
+        living_black_pieces.remove(selected_piece)
+
+    return jsonify({'message': 'No legal moves available - likely checkmate or stalemate'})
+
 
 """
     Validate the moves for pawns - left separate due to en passant shennanigans
@@ -756,6 +787,9 @@ def simulate_move(fen, start_cell, target_cell):
 
     return False
 
+"""
+    Find all legal moves for any piece type (all legal moves for both knights, both bishops, all pawns, etc)
+"""
 def find_all_legal(fen, prev_fen, piece):
 
     cells = moveLogic.initialize_board(fen)
@@ -785,7 +819,7 @@ def find_all_legal(fen, prev_fen, piece):
             ]
 
         return valid_moves
-    
+
     if piece == 'p':
         valid_moves = []
 
@@ -873,6 +907,60 @@ def find_all_legal(fen, prev_fen, piece):
             ]
 
         return valid_moves
+
+def find_legal_from_cell(fen, prev_fen, cell):
+    cells = moveLogic.initialize_board(fen)
+
+    piece = cells[cell].occupied_by
+
+    if piece == 'P' or piece == 'p':
+        moves = move_like_white_pawn(cell, fen, prev_fen)[0] if piece.isupper() else move_like_black_pawn(cell, fen, prev_fen)[0]
+
+        print('pawn', moves)
+
+        return [
+            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
+        ]
+    
+    elif piece == 'N' or piece == 'n':
+        moves = move_like_knight(cell, fen, 'white' if piece.isupper() else 'black')
+
+        print('knight', moves)
+
+        return [
+            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
+        ]
+    
+    elif piece == 'B' or piece == 'b':
+        moves = move_like_bishop(cell, fen, 'white' if piece.isupper() else 'black')
+        print('bishop', moves)
+        return [
+            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
+        ]
+    
+    elif piece == 'R' or piece == 'r':
+        moves = move_like_rook(cell, fen, 'white' if piece.isupper() else 'black')
+        print('rook', moves)
+        return [
+            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
+        ]
+    
+    elif piece == 'Q' or piece == 'q':
+        moves = move_like_queen(cell, fen, 'white' if piece.isupper() else 'black')
+        print('queen', moves)
+        return [
+            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
+        ]
+    
+    elif piece == 'K' or piece == 'k':
+        moves = move_like_king(cell, fen, 'white' if piece.isupper() else 'black')
+        print('king', moves)
+        return [
+            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
+        ]
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

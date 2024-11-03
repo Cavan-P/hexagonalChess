@@ -8,9 +8,9 @@ ctx.textBaseline = "middle"
 ctx.textAlign = "center"
 
 /** Debug options */
-const showCoords = true
+const showCoords = !true
 const showCellNumbers = !true
-const showOccupiedBy = true
+const showOccupiedBy = !true
 
 const showOccupiedPieceCell = !true
 

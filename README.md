@@ -26,6 +26,8 @@ the project, I'll come back to it and make this better later on.
     - [X] En Passant
     - [X] Check (Make this more efficient tho)
 
+  - [ ] Promotion
+
   - [X] Checkmate
   - [X] Stalemate
   - [X] Turn system

@@ -26,8 +26,8 @@ the project, I'll come back to it and make this better later on.
     - [X] En Passant
     - [X] Check (Make this more efficient tho)
 
-  - [ ] Checkmate
-  - [ ] Stalemate
+  - [X] Checkmate
+  - [X] Stalemate
   - [X] Turn system
   - [ ] Computer Opponent
 

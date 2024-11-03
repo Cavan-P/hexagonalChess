@@ -125,6 +125,9 @@ def find_legal_moves():
             if not ((piece.isupper() and simulate_move(fen_string, starting_cell, move) == 'white') or
             (piece.islower() and simulate_move(fen_string, starting_cell, move) == 'black'))
     ]
+
+    print(valid_moves)
+    print(find_all_legal(fen_string, prev_fen, piece))
     
 
     return jsonify({"moves": valid_moves, "enpassant": [en_passant_target_cell, en_passant_passed_pawn]})
@@ -142,193 +145,12 @@ def drop_check():
     check = is_check(fen, color)
     moves_exist = False
 
-    cells = moveLogic.initialize_board(fen)
+    pieces = ('p n b r q k' if color == 'black' else 'P N B R Q K').split()
 
-    #Check legal moves of white
-    if color == 'white':
-        for c in cells:
-            cell = cells[c]
-            #print(str(cell))
-            if cell and cell.occupied_by and cell.occupied_by.isupper():
-
-                p = cell.occupied_by
-
-                if p == 'P':
-                    hypothetical_moves = move_like_white_pawn(cell.num, fen, prev_fen)[0]
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
-                    ]
-
-                    if hypothetical_moves:
-                        print('Pawn', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-                if p == 'B':
-                    hypothetical_moves = move_like_bishop(cell.num, fen, 'white')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
-                    ]
-
-                    if hypothetical_moves:
-                        print('Bishop', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-                if p == 'N':
-                    hypothetical_moves = move_like_knight(cell.num, fen, 'white')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
-                    ]
-
-                    if hypothetical_moves:
-                        print('Knight', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-                if p == 'R':
-                    hypothetical_moves = move_like_rook(cell.num, fen, 'white')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
-                    ]
-
-                    if hypothetical_moves:
-                        print('Rook', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-                if p == 'Q':
-                    hypothetical_moves = move_like_queen(cell.num, fen, 'white')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
-                    ]
-
-                    if hypothetical_moves:
-                        print('Queen', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-                if p == 'K':
-                    hypothetical_moves = move_like_king(cell.num, fen, 'white')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
-                    ]
-
-                    if hypothetical_moves:
-                        print('King', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-    #Check legal moves of black
-    if color == 'black':
-        for c in cells:
-            cell = cells[c]
-            #print(str(cell))
-            if cell and cell.occupied_by and cell.occupied_by.islower():
-
-                p = cell.occupied_by
-
-                if p == 'p':
-                    hypothetical_moves = move_like_black_pawn(cell.num, fen, prev_fen)[0]
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'white'
-                    ]
-
-                    if hypothetical_moves:
-                        moves_exist = True
-                        print('pawn', hypothetical_moves)
-                        break
-
-                if p == 'b':
-                    hypothetical_moves = move_like_bishop(cell.num, fen, 'black')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
-                    ]
-
-                    if hypothetical_moves:
-                        moves_exist = True
-                        print('bishop', hypothetical_moves)
-                        break
-
-                if p == 'n':
-                    hypothetical_moves = move_like_knight(cell.num, fen, 'black')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
-                    ]
-
-                    if hypothetical_moves:
-                        print('knight', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-                if p == 'r':
-                    hypothetical_moves = move_like_rook(cell.num, fen, 'black')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
-                    ]
-
-                    if hypothetical_moves:
-                        print('rook', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-                if p == 'q':
-                    hypothetical_moves = move_like_queen(cell.num, fen, 'black')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
-                    ]
-
-                    if hypothetical_moves:
-                        print('queen', hypothetical_moves)
-                        moves_exist = True
-                        break
-
-                if p == 'k':
-                    hypothetical_moves = move_like_king(cell.num, fen, 'black')
-
-                    valid_moves = hypothetical_moves
-
-                    hypothetical_moves = [
-                        move for move in valid_moves if simulate_move(fen, cell.num, move) != 'black'
-                    ]
-
-                    if hypothetical_moves:
-                        print('king', hypothetical_moves)
-                        moves_exist = True
-                        break
+    for i in pieces:
+        if find_all_legal(fen, prev_fen, i):
+            moves_exist = True
+            break
 
 
     return jsonify({'check': check, 'movesExist': moves_exist})
@@ -843,9 +665,6 @@ def get_two_cell_move_white_enpassant(prev_fen, current_fen):
 
     returns 'white' if white king is in check, 'black' if black king is in check, and 'None' if there is no check present
 
-    Make this function (pretend the king is knight, for example) see if there is a check
-    When piece is selected, run this function for every possible move of only that piece, see if check exists.  If it does, remove that
-        cell from valid moves
 """
 
 def is_check(fen, color):
@@ -906,7 +725,13 @@ def is_check(fen, color):
     
     return None
 
+"""
+    Simulate a move, see if a check exists
+
+    Returns color of check, false is there is no check
+"""
 def simulate_move(fen, start_cell, target_cell):
+
     cells = moveLogic.initialize_board(fen)
     cells_copy = copy.deepcopy(cells)
 
@@ -931,6 +756,123 @@ def simulate_move(fen, start_cell, target_cell):
 
     return False
 
+def find_all_legal(fen, prev_fen, piece):
+
+    cells = moveLogic.initialize_board(fen)
+
+    white_pawn_cells = [cell for cell in cells if cells[cell].occupied_by == 'P']
+    black_pawn_cells = [cell for cell in cells if cells[cell].occupied_by == 'p']
+    white_knight_cells = [cell for cell in cells if cells[cell].occupied_by == 'N']
+    black_knight_cells = [cell for cell in cells if cells[cell].occupied_by == 'n']
+    white_bishop_cells = [cell for cell in cells if cells[cell].occupied_by == 'B']
+    black_bishop_cells = [cell for cell in cells if cells[cell].occupied_by == 'b']
+    white_rook_cells = [cell for cell in cells if cells[cell].occupied_by == 'R']
+    black_rook_cells = [cell for cell in cells if cells[cell].occupied_by == 'r']
+    white_queen_cells = [cell for cell in cells if cells[cell].occupied_by == 'Q']
+    black_queen_cells = [cell for cell in cells if cells[cell].occupied_by == 'q']
+    white_king_cells = [cell for cell in cells if cells[cell].occupied_by == 'K']
+    black_king_cells = [cell for cell in cells if cells[cell].occupied_by == 'k']
+
+    if piece == 'P':
+        valid_moves = []
+
+        for i in range(len(white_pawn_cells)):
+
+            moves = move_like_white_pawn(cells[white_pawn_cells[i]].num, fen, prev_fen)[0]
+
+            valid_moves += [
+                move for move in moves if not simulate_move(fen, cells[white_pawn_cells[i]].num, move) == 'white'
+            ]
+
+        return valid_moves
+    
+    if piece == 'p':
+        valid_moves = []
+
+        for i in range(len(black_pawn_cells)):
+
+            moves = move_like_black_pawn(cells[black_pawn_cells[i]].num, fen, prev_fen)[0]
+
+            valid_moves += [
+                move for move in moves if not simulate_move(fen, cells[black_pawn_cells[i]].num, move) == 'black'
+            ]
+
+        return valid_moves
+    
+    if piece == 'N' or piece == 'n':
+        valid_moves = []
+        cell_list = white_knight_cells if piece == 'N' else black_knight_cells
+
+        for i in range(len(cell_list)):
+            starting_cell = cells[cell_list[i]].num
+
+            moves = move_like_knight(starting_cell, fen, 'white' if piece.isupper() else 'black')
+
+            valid_moves += [
+                move for move in moves if not simulate_move(fen, starting_cell, move) == ('white' if piece.isupper() else 'black')
+            ]
+
+        return valid_moves
+    
+    if piece == 'B' or piece == 'b':
+        valid_moves = []
+        cell_list = white_bishop_cells if piece == 'B' else black_bishop_cells
+
+        for i in range(len(cell_list)):
+            starting_cell = cells[cell_list[i]].num
+
+            moves = move_like_bishop(starting_cell, fen, 'white' if piece.isupper() else 'black')
+
+            valid_moves += [
+                move for move in moves if not simulate_move(fen, starting_cell, move) == ('white' if piece.isupper() else 'black')
+            ]
+
+        return valid_moves
+    
+    if piece == 'R' or piece == 'r':
+        valid_moves = []
+        cell_list = white_rook_cells if piece == 'R' else black_rook_cells
+
+        for i in range(len(cell_list)):
+            starting_cell = cells[cell_list[i]].num
+
+            moves = move_like_rook(starting_cell, fen, 'white' if piece.isupper() else 'black')
+
+            valid_moves += [
+                move for move in moves if not simulate_move(fen, starting_cell, move) == ('white' if piece.isupper() else 'black')
+            ]
+
+        return valid_moves
+    
+    if piece == 'Q' or piece == 'q':
+        valid_moves = []
+        cell_list = white_queen_cells if piece == 'Q' else black_queen_cells
+
+        for i in range(len(cell_list)):
+            starting_cell = cells[cell_list[i]].num
+
+            moves = move_like_queen(starting_cell, fen, 'white' if piece.isupper() else 'black')
+
+            valid_moves += [
+                move for move in moves if not simulate_move(fen, starting_cell, move) == ('white' if piece.isupper() else 'black')
+            ]
+
+        return valid_moves
+    
+    if piece == 'K' or piece == 'k':
+        valid_moves = []
+        cell_list = white_king_cells if piece == 'K' else black_king_cells
+
+        for i in range(len(cell_list)):
+            starting_cell = cells[cell_list[i]].num
+
+            moves = move_like_king(starting_cell, fen, 'white' if piece.isupper() else 'black')
+
+            valid_moves += [
+                move for move in moves if not simulate_move(fen, starting_cell, move) == ('white' if piece.isupper() else 'black')
+            ]
+
+        return valid_moves
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

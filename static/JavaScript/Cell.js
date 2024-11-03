@@ -50,9 +50,9 @@ class Cell {
             ctx.font = '10px sans-serif'
             ctx.fillText(this.occupiedBy, this.x, this.y + cellSize / 1.6)
         }
-        /*if(this.occupied){
+        if(this.occupied && showOccupiedCell){
             drawHexagon(this.x, this.y, cellSize, '#FF00005C', false)
-        }*/
+        }
         if(this.landable){
             ctx.strokeStyle = '#000'
             if(this.occupied){

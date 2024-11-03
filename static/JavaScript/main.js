@@ -9,10 +9,11 @@ ctx.textAlign = "center"
 
 /** Debug options */
 const showCoords = !true
-const showCellNumbers = !true
-const showOccupiedBy = !true
+const showCellNumbers = true
+const showOccupiedBy = true
 
-const showOccupiedPieceCell = !true
+const showOccupiedPieceCell = true
+const showOccupiedCell = true
 
 var turn = 0 //Even is white's move
 const computerColor = 'black'
@@ -30,7 +31,10 @@ var pressed = false
 
 var sze = 60
 var populated = false
-const FEN = 'bqknbnr2rp1b1p1p2p2p1p3pp4p993P4PP3P1P2P2P1P1B1PR2RNBNQKB'
+let FEN = 'bqknbnr2rp1b1p1p2p2p1p3pp4p993P4PP3P1P2P2P1P1B1PR2RNBNQKB'
+
+//Force computer to en passant
+//FEN = 'k93R5B1Q7NB94p91P5P9P89K'
 
 var moveData = {}
 var dropData = {}

@@ -36,7 +36,7 @@ the project, I'll come back to it and make this better later on.
 - [ ] KNOWN BUGS
   - [X] Only legal move sends new FEN strings
   - [ ] Computer playing en passant doesn't kill en passanted pawn
-  - [ ] Sometimes sliding pieces don't have full range?
+  - [ ] Sometimes pieces don't have full range (Noticed queen, king, pawn)
   - [ ] Computer cannot play white
 
 

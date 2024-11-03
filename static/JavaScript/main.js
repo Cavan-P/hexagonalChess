@@ -15,6 +15,7 @@ const showOccupiedBy = true
 const showOccupiedPieceCell = !true
 
 var turn = 0 //Even is white's move
+const computerColor = 'black'
 
 /** Cell radius (center to corner) */
 const cellSize = 45
@@ -49,6 +50,7 @@ var noMovesFound = false
 var turn = 0
 
 var sentComputerMove = false
+const computer = new Computer(computerColor)
 
 document.onmousemove = event => {
     mouseX = event.clientX
@@ -118,9 +120,9 @@ init = _ => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0)'
 
     //If it's black's move
-    if(turn % 2 && !sentComputerMove){
+    if(((turn % 2 && computerColor == 'black') || (turn % 2 == 0 && computerColor == 'white')) && !sentComputerMove){
         sentComputerMove = true
-        sendForComputerMove()
+        computer.playTurn(currentFenString, previousFenString)
     }
 
     if(checkedKing){

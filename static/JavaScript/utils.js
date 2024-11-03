@@ -30,6 +30,10 @@ isUppercase = c => {
     return c == c.toUpperCase()
 }
 
+smooth = (pos, dest, tme) => {
+    return (dest - pos) / tme
+}
+
 const pieceCoordinates = {
     'K': { x: 0, y: 0 },    // White King
     'Q': { x: 200, y: 0 },  // White Queen
@@ -104,43 +108,17 @@ function displayCapturedPieces(ctx) {
     })
 }
 
-function sendForComputerMove(){
-    fetch('http://localhost:8000/computer_move', {
+async function sendMoveRequest(currentFen, prevFen){
+    const response = await fetch('http://localhost:8000/computer_move', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({fen: currentFenString, prevFen: previousFenString})
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({fen: currentFen, prevFen: prevFen})
     })
-    .then(response => response.json())
-    .then(data => {
-        
-        let startingCell = cells[data.startingCell]
-        let targetCell = cells[data.targetCell]
-        let movedPiece = startingCell.occupiedBy
 
-        //targetCell.occupiedBy = movedPiece
-       // targetCell.occupied = true
+    if (!response.ok){
+        throw new Error(`Request failed with status ${response.status}`)
+    }
 
-        //startingCell.occupied = false
-        //startingCell.occupiedBy = ''
-
-        movedPiece = pieces[pieces.findIndex(piece => piece.occupyingCell == startingCell)]
-
-        console.log(movedPiece.piece)
-
-        movedPiece.x = targetCell.x
-        movedPiece.y = targetCell.y
-
-        movedPiece.assignCurrentCell(cells)
-
-        movedPiece.landedLegalMove = true
-
-        currentFenString = boardToFen()
-
-        console.log(currentFenString)
-
-        turn++
-        sentComputerMove = false
-    })
+    const moveData = await response.json()
+    return moveData
 }

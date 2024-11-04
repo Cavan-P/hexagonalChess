@@ -79,8 +79,8 @@ class Piece {
                 this.selected = true
                 
                 this.sendData()
-                //console.log("After sent data prev fen: ", previousFenString)
-                //console.log("After sent data current fen: ", currentFenString)
+                console.log("After sent data prev fen: ", previousFenString)
+                console.log("After sent data current fen: ", currentFenString)
             }
 
             if(this.over && this.dragging && this.selected){
@@ -89,6 +89,9 @@ class Piece {
                 drawHexagon(targetCell.x, targetCell.y, cellSize, 'rgba(0, 100, 0, 0.4)', false)
                 //Cell it'll land on
                 drawHexagon(this.occupyingCell.x, this.occupyingCell.y, cellSize, 'rgba(0, 200, 0, 0.4)', false)
+
+                this.occupyingCell.occupied = true
+                this.occupyingCell.occupiedBy = this.piece
                 
                 //previousFenString = currentFenString
                 
@@ -175,8 +178,8 @@ class Piece {
 
                     turn ++
 
-                    console.log("Prev: " + previousFenString)
-                    console.log("Curr: " + currentFenString)
+                    console.log("Prev Piece.js Drop: " + previousFenString)
+                    console.log("Curr Piece.js Drop: " + currentFenString)
                     //console.log(`${turn % 2 == 0 ? 'white\'s' : 'black\'s'} move`)
                 }
             }

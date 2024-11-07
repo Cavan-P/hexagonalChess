@@ -11,7 +11,6 @@ drawHexagon = (x, y, s, col, stroke) => {
     
     if(stroke) ctx.lineWidth = 5, ctx.stroke()
 
-    
     ctx.fill()
 }
 

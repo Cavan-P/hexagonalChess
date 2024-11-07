@@ -68,21 +68,19 @@ black_promotion = [
 def find_legal_moves():
     move_data = request.json
 
+    #Data that is sent from JS side
     fen_string = move_data['fen']
     prev_fen = move_data['prevFen']
     piece = move_data['piece']
     starting_cell = move_data['startingCell']
 
+    #Current list of valid cell NUMBERS that the selected piece can move to
     valid_moves = []
-    en_passant_target_cell = None  #Send this to JS
-    en_passant_passed_pawn = None
+
+    en_passant_target_cell = None #What cell will the pawn moving en passant land on
+    en_passant_passed_pawn = None #What cell is the pawn being catpured currently on
     
-    #is_valid = validate_move_logic(fen_string, piece, starting_cell)
-
-    #get_coordinates_from_cell_num(88, fen_string)
-
-    #print(fen_string, piece, starting_cell)
-
+    #Specify color of the piece being moved
     if piece.isupper():
         color = 'white'
     if piece.islower():
@@ -121,16 +119,19 @@ def find_legal_moves():
 
     possible_moves = valid_moves
 
+
+    #simulate_move returns the color of the side that's in check, False if no checks exist
+    #This line ensures valid_moves only include moves that don't put the pieces' own color in check
     valid_moves = [
         move for move in possible_moves 
             if not ((piece.isupper() and simulate_move(fen_string, starting_cell, move) == 'white') or
             (piece.islower() and simulate_move(fen_string, starting_cell, move) == 'black'))
     ]
 
-    print(valid_moves)
-    print(find_all_legal(fen_string, prev_fen, piece))
+    print("Found valid moves: " + str(valid_moves))
+    print("Found legal moves for piece: " + str(find_all_legal(fen_string, prev_fen, piece)))
     
-
+    #Send back list of valid moves, and any necessary en passant information if it's applicable
     return jsonify({"moves": valid_moves, "enpassant": [en_passant_target_cell, en_passant_passed_pawn]})
     
 
@@ -138,22 +139,28 @@ def find_legal_moves():
 def drop_check():
     data = request.get_json()
 
+    #Data that is sent to verify if a chosen move is check
     fen = data['fen']
     prev_fen = data['prevFen']
     piece = data['piece']
-    color = 'black' if piece.isupper() else 'white'#Backwards because I need to check if this move put the other color in check
 
+    #Backwards piece color, because we're checking if the move made is opponent check
+    color = 'black' if piece.isupper() else 'white'
+
+    #'white' if white king is in check, 'black' if black is, and 'None' if there is no check on the board
     check = is_check(fen, color)
     moves_exist = False
 
     pieces = ('p n b r q k' if color == 'black' else 'P N B R Q K').split()
 
+    #Find all legal moves for each piece type
+    #If there are no moves, it's either checkmate or stalemate
     for i in pieces:
         if find_all_legal(fen, prev_fen, i):
             moves_exist = True
             break
 
-
+    #Send back the color that is in check, and whether or not this color has any legal moves on the board
     return jsonify({'check': check, 'movesExist': moves_exist})
 
 
@@ -161,28 +168,38 @@ def drop_check():
 def computer_move():
     data = request.get_json()
 
+    #Data sent from JS to get the computer's selected move
     fen = data['fen']
     prev_fen = data['prevFen']
     cells = moveLogic.initialize_board(fen)
 
+    #What pieces does the computer still have on the board?
     living_black_pieces = {char for char in fen if char.islower()}
 
+    #While there's still something left...
     while living_black_pieces:
+        #Select random available piece type
         selected_piece = random.choice(list(living_black_pieces))
 
+        #Get all cells that hold this piece
         selected_piece_cells = [cell for cell in cells if cells[cell].occupied_by == selected_piece]
 
+        #Select a cell holding selected piece
         starting_cell = random.choice(selected_piece_cells) if len(selected_piece_cells) > 1 else selected_piece_cells[0]
 
+        #Get all legal moves for this piece
         legal_cells = find_legal_from_cell(fen, prev_fen, starting_cell)
 
+        #If this piece has a legal move, pick one of them, and send back the selected starting cell and selected target cell
         if legal_cells:
             target_cell = random.choice(legal_cells)
             return jsonify({'startingCell': starting_cell, 'targetCell': target_cell})
         
+        #If there are no legal moves for the initial selected piece, remove that piece type from the list and try again
         print(f"No legal moves for {selected_piece}, reselecting...")
         living_black_pieces.remove(selected_piece)
 
+    #No legal moves have been found
     return jsonify({'message': 'No legal moves available - likely checkmate or stalemate'})
 
 
@@ -193,10 +210,13 @@ def move_like_white_pawn(starting_cell, fen, prev_fen):
     cells = moveLogic.initialize_board(fen)
     valid_cells = []
 
+    #Starting coordinates
     start_coords = get_coordinates_from_cell(starting_cell, fen)
 
+    #Necessary for checking if it's still on the starting cell of a friendly-colored pawn (and eventually promotion)
     string_form_coords = str(start_coords[0]) + " " + str(start_coords[1]) + " " + str(start_coords[2])
 
+    #Cell values for each...
     one_cell_forward = get_cell_with_coordinates(start_coords[0], start_coords[1] - 1, start_coords[2] + 1, fen)
     two_cells_forward = get_cell_with_coordinates(start_coords[0], start_coords[1] - 2, start_coords[2] + 2, fen)
     upper_left = get_cell_with_coordinates(start_coords[0] - 1, start_coords[1], start_coords[2] + 1, fen)
@@ -206,6 +226,7 @@ def move_like_white_pawn(starting_cell, fen, prev_fen):
     en_passant_target_cell = None
     en_passant_passed_pawn = None
 
+    #If the cell exists and it's not occupied...
     if one_cell_forward != None and cells[one_cell_forward].occupied_by == None:
         valid_cells.append(one_cell_forward)
 
@@ -650,17 +671,19 @@ def get_cell_with_coordinates(q, r, s, fen):
     return None
 
 def get_two_cell_move_black_enpassant(prev_fen, current_fen):
+
+    #Used for checking if one pawn moved two cells in the last move
     previous_cells = moveLogic.initialize_board(prev_fen)
     current_cells = moveLogic.initialize_board(current_fen)
 
     en_passant_target_cell = None
 
+    #Get every cell that a pawn existed on last move
     previous_pawn_cells = [previous_cells[cell].num for cell in previous_cells if previous_cells[cell].occupied_by == 'P']
+    #And ever cell that a pawn exists on now
     current_pawn_cells = [current_cells[cell].num for cell in current_cells if current_cells[cell].occupied_by == 'P']
 
-    #print("Prev: " + str(previous_pawn_cells))
-    #print("Cur: " + str(current_pawn_cells))
-
+    #Look at each current cell and see if two cells 'behind' was occupied by a pawn last move
     for current_cell in current_pawn_cells:
         double_move_start = current_cell + 22
 
@@ -668,6 +691,7 @@ def get_two_cell_move_black_enpassant(prev_fen, current_fen):
             en_passant_target_cell = double_move_start - 11
         
 
+    #If so, the target cell for en passant is in between them
     return en_passant_target_cell
 
 def get_two_cell_move_white_enpassant(prev_fen, current_fen):
@@ -697,12 +721,12 @@ def get_two_cell_move_white_enpassant(prev_fen, current_fen):
     returns 'white' if white king is in check, 'black' if black king is in check, and 'None' if there is no check present
 
 """
-
 def is_check(fen, color):
     cells = moveLogic.initialize_board(fen)
     white_king = None
     black_king = None
 
+    #Find the cells that each king occupies
     for cell in cells:
         if cells[cell].occupied_by == 'k':
             black_king = cell
@@ -710,9 +734,11 @@ def is_check(fen, color):
         if cells[cell].occupied_by == 'K':
             white_king = cell
 
+    #Get coordinates for the kings
     white_king_coords = get_coordinates_from_cell(white_king, fen)
     black_king_coords = get_coordinates_from_cell(black_king, fen)
 
+    #Checking check with pawns
     upper_left = get_cell_with_coordinates(white_king_coords[0] - 1, white_king_coords[1], white_king_coords[2] + 1, fen)
     upper_right = get_cell_with_coordinates(white_king_coords[0] + 1, white_king_coords[1] - 1, white_king_coords[2], fen)
     lower_left = get_cell_with_coordinates(black_king_coords[0] - 1, black_king_coords[1] + 1, black_king_coords[2], fen)
@@ -720,18 +746,23 @@ def is_check(fen, color):
 
     #Check white king for black encounters
     if color == 'white':
+        #Does the white king encounter a black bishop or a queen if trying to move like a bishop?
         if any((cells[cell].occupied_by == 'b' or cells[cell].occupied_by == 'q') for cell in move_like_bishop(white_king, fen, 'white')):
             return 'white'
         
+        #Does the white king encounter a black rook or a queen if trying to move like a rook?
         if any((cells[cell].occupied_by == 'r' or cells[cell].occupied_by == 'q') for cell in move_like_rook(white_king, fen, 'white')):
             return 'white'
         
+        #Does the white king encounter a black knight if trying to move like a knight?
         if any(cells[cell].occupied_by == 'n' for cell in move_like_knight(white_king, fen, 'white')):
             return 'white'
         
+        #Does the white king encouter a black king when it tries to move like a king?
         if any(cells[cell].occupied_by == 'k' for cell in move_like_king(white_king, fen, 'white')):
             return 'white'
         
+        #Does the white king encounter a black pawn when it tries to capture like a pawn would?
         if any(cells[cell].occupied_by == 'p' for cell in [upper_left, upper_right] if cell is not None):
             return 'white'
         
@@ -754,6 +785,7 @@ def is_check(fen, color):
         if any(cells[cell].occupied_by == 'P' for cell in [lower_left, lower_right] if cell is not None):
             return 'black'
     
+    #If no piece encounters exist, there is no check
     return None
 
 """
@@ -766,25 +798,33 @@ def simulate_move(fen, start_cell, target_cell):
     cells = moveLogic.initialize_board(fen)
     cells_copy = copy.deepcopy(cells)
 
+    #If the target cell contains a king, there's no need to simulate the move.  Kings cannot be captured
     if cells_copy[target_cell].occupied_by == 'k':
         return 'black'
     if cells_copy[target_cell].occupied_by == 'K':
         return 'white'
 
+    #What piece is being simulated?
     piece = cells_copy[start_cell].occupied_by
+
+    #Remove the piece from its starting cell, put it on its target cell
     cells_copy[start_cell].occupied_by = None
     cells_copy[target_cell].occupied_by = piece
 
+    #Get the FEN string for the simulated position
     new_fen = moveLogic.board_to_fen(cells_copy)
 
+    #If we moved a black piece, see if we put ourselves in check
     if piece.islower():
         if is_check(new_fen, 'black') == 'black':
             return 'black'
-        
+    
+    #Same for white piece
     else:
         if is_check(new_fen, 'white') == 'white':
             return 'white'
 
+    #Otherwise, there's no check present
     return False
 
 """
@@ -794,6 +834,7 @@ def find_all_legal(fen, prev_fen, piece):
 
     cells = moveLogic.initialize_board(fen)
 
+    #Get every cell that contains each piece type
     white_pawn_cells = [cell for cell in cells if cells[cell].occupied_by == 'P']
     black_pawn_cells = [cell for cell in cells if cells[cell].occupied_by == 'p']
     white_knight_cells = [cell for cell in cells if cells[cell].occupied_by == 'N']
@@ -810,10 +851,12 @@ def find_all_legal(fen, prev_fen, piece):
     if piece == 'P':
         valid_moves = []
 
+        #For every pawn on the board...
         for i in range(len(white_pawn_cells)):
-
+            #Find where pawn 'i' can move to
             moves = move_like_white_pawn(cells[white_pawn_cells[i]].num, fen, prev_fen)[0]
-
+            
+            #Ensure that each move doesn't produce a check
             valid_moves += [
                 move for move in moves if not simulate_move(fen, cells[white_pawn_cells[i]].num, move) == 'white'
             ]
@@ -833,8 +876,10 @@ def find_all_legal(fen, prev_fen, piece):
 
         return valid_moves
     
+    #Check both knights
     if piece == 'N' or piece == 'n':
         valid_moves = []
+        #We only want the list of starting cells that hold the piece of the right color!
         cell_list = white_knight_cells if piece == 'N' else black_knight_cells
 
         for i in range(len(cell_list)):
@@ -842,6 +887,7 @@ def find_all_legal(fen, prev_fen, piece):
 
             moves = move_like_knight(starting_cell, fen, 'white' if piece.isupper() else 'black')
 
+            #Make sure we're not putting ourselves in check
             valid_moves += [
                 move for move in moves if not simulate_move(fen, starting_cell, move) == ('white' if piece.isupper() else 'black')
             ]
@@ -908,6 +954,9 @@ def find_all_legal(fen, prev_fen, piece):
 
         return valid_moves
 
+"""
+    Find all legal moves (considering check) for whatever piece is occupying a given cell
+"""
 def find_legal_from_cell(fen, prev_fen, cell):
     cells = moveLogic.initialize_board(fen)
 

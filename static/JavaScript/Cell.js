@@ -11,23 +11,21 @@ class Cell {
 
         this.occupied = false
         this.occupiedBy = ''
-
-        this.landable = false
     }
 
     update(pieces){
         this.occupied = false
         this.occupiedBy = ''
-
+        
         for(let piece of pieces){
-            if(!piece.dragging && piece.x == this.x && piece.y == this.y){
+            if(piece.currentCell == this){
                 this.occupied = true
                 this.occupiedBy = piece.piece
             }
         }
     }
 
-    display(showCellNumbers, showCoords) {
+    display(showCellNumbers, showCoords, showOccupiedBy) {
         if(showCellNumbers){
             ctx.fillStyle = '#000'
             ctx.font = '20px sans-serif'
@@ -52,15 +50,6 @@ class Cell {
         }
         if(this.occupied && showOccupiedCell){
             drawHexagon(this.x, this.y, cellSize, '#FF00005C', false)
-        }
-        if(this.landable){
-            ctx.strokeStyle = '#000'
-            if(this.occupied){
-                drawHexagon(this.x, this.y, cellSize, 'rgba(200, 0, 0, 0.4)', false)
-            }
-            else {
-                drawHexagon(this.x, this.y, cellSize, 'rgba(0, 0, 0, 0)', true)
-            }
         }
     }
 }

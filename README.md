@@ -38,5 +38,6 @@ the project, I'll come back to it and make this better later on.
   - [ ] Computer playing en passant doesn't kill en passanted pawn
   - [ ] Sometimes pieces don't have full range (Noticed queen, king, pawn)
   - [ ] Computer cannot play white
+  - [ ] prev FEN is not accurate - is the FEN string where previous piece was being dragged and therefore is not represented on the board
 
 

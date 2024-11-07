@@ -8,15 +8,18 @@ ctx.textBaseline = "middle"
 ctx.textAlign = "center"
 
 /** Debug options */
+//Cells
 const showCoords = !true
 const showCellNumbers = true
 const showOccupiedBy = true
 
+//Pieces
 const showOccupiedPieceCell = true
 const showOccupiedCell = true
 
 var turn = 0 //Even is white's move
-const computerColor = 'black'
+const playerColor = 'white'
+const computerColor = (playerColor == 'white') ? 'black' : 'white'
 
 /** Cell radius (center to corner) */
 const cellSize = 45
@@ -29,7 +32,6 @@ var mouseX = 0
 var mouseY = 0
 var pressed = false
 
-var sze = 60
 var populated = false
 let FEN = 'bqknbnr2rp1b1p1p2p2p1p3pp4p993P4PP3P1P2P2P1P1B1PR2RNBNQKB'
 
@@ -45,68 +47,30 @@ var moveData = {}
 var dropData = {}
 var currentFenString = boardToFen()
 var previousFenString = boardToFen()
-let isPieceSelected = false
-var triggerPassant = false
-var deleteCell = null
-
-var triggerCheck = false
-var checkedKing = null
-var whiteKingCell = null
-var blackKingCell = null
-
-var noMovesFound = false
 
 var turn = 0
 
-var sentComputerMove = false
 const computer = new Computer(computerColor)
+const player = new Player(playerColor)
 
 document.onmousemove = event => {
     mouseX = event.clientX
     mouseY = event.clientY
-
-    pieces.sort((a, b) => (a.dragging > b.dragging) ? 1 : -1)
-
-    for(let piece of pieces){
-        if(piece.dragging){
-            piece.x = mouseX
-            piece.y = mouseY
-        }
-    }
 }
 
 document.onmousedown = event => {
     pressed = true
-
-    for(let piece of pieces){
-        if(!(turn % 2)){
-            if(piece.over && isUppercase(piece.piece)) piece.dragging = true, isPieceSelected = true
-        }
-        else {
-            if(piece.over && isLowercase(piece.piece)) piece.dragging = true, isPieceSelected = true
-        }
-    }
 }
 
 document.onmouseup = event => {
     pressed = false
-
-    for(let piece of pieces){
-        if(piece.dragging){
-            piece.dragging = false
-            isPieceSelected = false
-        }
-    }
 }
 
 init = _ => {
-
+    
     ctx.fillStyle = '#FFF'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.fill()
-
-    triggerCheck = false
-    checkCell = null
 
     ctx.strokeStyle = '#000'
     drawBoard(cellSize, 0, 1)
@@ -120,7 +84,7 @@ init = _ => {
     if(!populated){
         populated = true
         populateBoard(FEN, cells)
-        
+        for(let piece of pieces) piece.assignCurrentCell(cells)
     }
 
     ctx.font = '20px sans-serif'
@@ -128,62 +92,22 @@ init = _ => {
     ctx.fillText(`${turn % 2 ? 'Black' : 'White'}'s Move`, window.innerWidth - 100, 25)
     ctx.fillStyle = 'rgba(0, 0, 0, 0)'
 
-    //If it's black's move
-    if(((turn % 2 && computerColor == 'black') || (turn % 2 == 0 && computerColor == 'white')) && !sentComputerMove){
-        sentComputerMove = true
-        computer.playTurn(currentFenString, previousFenString)
-    }
-
-    if(checkedKing){
-        checkCell = checkedKing == 'white' ? whiteKingCell : blackKingCell
-        ctx.strokeStyle = 'rgba(200, 0, 0, 0.5)'
-        drawHexagon(cells[checkCell].x, cells[checkCell].y, cellSize, 'rgba(0, 0, 0, 0)', true)
-    }
-
-    if(checkedKing && noMovesFound){
-        console.log("Checkmate!")
-    }
-    if(!checkedKing && noMovesFound){
-        console.log("Stalemate!")
-    }
-
     pieces = pieces.filter(p => !p.captured)
 
+    //Display and update the cells
     for(let i = 0; i < cells.length; i++){
         cells[i].update(pieces)
-        cells[i].display(showCellNumbers, showCoords)
-    }
-    
-    for(let i = 0; i < pieces.length; i++){
-        pieces[i].update(cells)
-        pieces[i].display()
+        cells[i].display(showCellNumbers, showCoords, showOccupiedBy)
     }
 
-    for(let p1 of pieces){
-        for(let p2 of pieces){
-            if(p1 == p2 || p2.captured) continue
+    player.update(pieces, cells)
 
-            if(p1.justMoved && p1.findClosestCell(cells) == p2.findClosestCell(cells)){
-                p2.captured = true
-                capturedPieces.push(p2.piece)
-                
-                
-                break
-            }
-        }
-    }
-
-    if(triggerPassant){
-        //console.log("Triggering passant")
-        capturedPieces.push(cells[deleteCell].occupiedBy == 'p' ? 'p' : 'P')
-        pieces = pieces.filter(piece => piece.occupyingCell.num != deleteCell)
-        triggerPassant = false
-        deleteCell = null
+    //Display pieces ON TOP OF all highlighting shennanigans
+    for(let piece of pieces){
+        piece.display(showOccupiedPieceCell)
     }
 
     displayCapturedPieces(ctx)
-
-    //console.log(capturedPieces)
 
     requestAnimationFrame(init)
 }

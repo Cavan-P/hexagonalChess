@@ -107,18 +107,3 @@ function displayCapturedPieces(ctx) {
         }
     })
 }
-
-async function sendMoveRequest(currentFen, prevFen){
-    const response = await fetch('http://localhost:8000/computer_move', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({fen: currentFen, prevFen: prevFen})
-    })
-
-    if (!response.ok){
-        throw new Error(`Request failed with status ${response.status}`)
-    }
-
-    const moveData = await response.json()
-    return moveData
-}

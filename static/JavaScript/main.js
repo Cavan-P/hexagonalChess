@@ -114,6 +114,10 @@ init = _ => {
 
     player.update(pieces, cells)
 
+    if(computerColor == 'black' && turn % 2){
+        computer.makeMove()
+    }
+
     //Display pieces ON TOP OF all highlighting shennanigans
     for(let piece of pieces){
         piece.display(showOccupiedPieceCell)

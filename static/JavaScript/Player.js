@@ -64,6 +64,8 @@ class Player {
                 //console.log("Current upon drop: ", currentFenString)
 
                 this.checkForCheck()
+
+                turn++
             }
             else {
                 this.selectedPiece.dragging = false

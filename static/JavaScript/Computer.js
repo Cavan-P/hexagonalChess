@@ -1,40 +1,94 @@
 class Computer {
     constructor(color){
         this.color = color
+
+        this.selectedCell = null
+        this.targetCell = null
     }
 
-    async playTurn(currentFen, prevFen) {
-        try {
-            const { startingCell, targetCell } = await this.getMove(currentFen, prevFen)
+    async sendMoveRequest(){
+        const data = {
+            fen: currentFenString,
+            prevFen: previousFenString
+        }
 
-            this.makeMove(startingCell, targetCell)
-        } catch (error) {
-            console.error("Error in computer's turn: ", error)
+        const response = await fetch('http://localhost:8000/computer_move', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        
+        const responseData = await response.json()
+        return responseData
+    }
+
+    async makeMove(){
+        //Give the turn back to White so I only make a move one time
+        turn++
+
+        const data = await this.sendMoveRequest()
+
+        if(data.message){
+            console.log(data.message)
+        }
+        else {
+            this.selectedCell = data.startingCell
+            this.targetCell = data.targetCell
+
+            this.updateBoard()
         }
     }
 
-    async getMove(currentFen, prevFen){
-        const move = await sendMoveRequest(currentFen, prevFen)
+    updateBoard(){
+        let movedPiece = this.getPieceOnCell(this.selectedCell)
 
-        return move
-    }
+        pieces.splice(pieces.indexOf(movedPiece), 1); // Remove selected piece
+        pieces.push(movedPiece); // Add it back at the end
 
-    makeMove(startingCell, targetCell){
-        console.log(startingCell, targetCell)
-        const movedPiece = this.getPieceOnCell(startingCell)
+        movedPiece.currentCell.occupied = false
+        movedPiece.currentCell.occupiedBy = ''
 
-        const landingCell = cells[targetCell]
+        movedPiece.currentCell = cells[this.targetCell]
+        movedPiece.x = movedPiece.currentCell.x
+        movedPiece.y = movedPiece.currentCell.y
+        cells[this.targetCell].occupied = true
+        cells[this.targetCell].occupiedBy = movedPiece.piece
 
-        if(landingCell.occupied){
-            this.getPieceOnCell(landingCell.num).captured = true
-            capturedPieces.push(this.getPieceOnCell(landingCell.num).piece)
-        }
+        previousFenString = currentFenString
+        currentFenString = boardToFen()
 
-        turn ++
-        sentComputerMove = false
+        console.log("Computer previous: ", previousFenString)
+        console.log("Computer current: ", currentFenString)
+
+        this.checkForCheck(movedPiece.piece)
+        
     }
 
     getPieceOnCell(cell){
-        return pieces[pieces.findIndex(piece => piece.occupyingCell.num == cell)]
+        return pieces[pieces.findIndex(p => p.currentCell.num == cell)]
+    }
+
+    checkForCheck(movedPiece){
+        fetch('http://localhost:8000/drop_check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fen: currentFenString,
+                prevFen: previousFenString,
+                piece: movedPiece
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+
+            checkFlag = data.check
+            result = data.movesExist ? '' : data.check ? 'checkmate' : 'stalemate'
+
+            sendPiece = null
+        })
     }
 }

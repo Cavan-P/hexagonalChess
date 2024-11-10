@@ -50,6 +50,7 @@ class Computer {
 
     updateBoard(){
         let movedPiece = this.getPieceOnCell(this.selectedCell)
+        let targetCellCoords = `${cells[this.targetCell].q} ${cells[this.targetCell].r} ${cells[this.targetCell.s]}`
 
         pieces.splice(pieces.indexOf(movedPiece), 1); // Remove selected piece
         pieces.push(movedPiece); // Add it back at the end
@@ -72,6 +73,17 @@ class Computer {
 
             cells[this.enPassantCell].occupied = false
             cells[this.enPassantCell].occupiedBy = ''
+        }
+
+        if(movedPiece.piece == 'P'){
+            if(whitePromotion.includes(targetCellCoords)){
+                movedPiece.piece = 'Q'
+            }
+        }
+        if(movedPiece.piece == 'p'){
+            if(blackPromotion.includes(targetCellCoords)){
+                movedPiece.piece = 'q'
+            }
         }
 
         previousFenString = currentFenString
@@ -104,6 +116,7 @@ class Computer {
         .then(data => {
 
             checkFlag = data.check
+            checkCell = null
             result = data.movesExist ? '' : data.check ? 'checkmate' : 'stalemate'
 
             sendPiece = null

@@ -44,6 +44,7 @@ class Player {
         }
         else if(this.selectedPiece){
             let potentialTarget = this.getClosestCellToMouse(cells)
+            let potentialTargetCoords = `${potentialTarget.q} ${potentialTarget.r} ${potentialTarget.s}`
 
             if(this.legalMoves.includes(potentialTarget.num)){
                 sendPiece = this.selectedPiece
@@ -62,6 +63,19 @@ class Player {
 
                 //console.log("Previous upon drop: ", previousFenString)
                 //console.log("Current upon drop: ", currentFenString)
+
+                if(this.selectedPiece.piece == 'P'){
+                    if(whitePromotion.includes(potentialTargetCoords)){
+                        this.selectedPiece.piece = 'Q'
+                        sendPiece.piece = 'Q'
+                    }
+                }
+                if(this.selectedPiece.piece == 'p'){
+                    if(blackPromotion.includes(potentialTargetCoords)){
+                        this.selectedPiece.piece = 'Q'
+                        sendPiece.piece = 'Q'
+                    }
+                }
 
                 this.checkForCheck()
 
@@ -141,6 +155,7 @@ class Player {
         .then(data => {
 
             checkFlag = data.check
+            checkCell = null
             result = data.movesExist ? '' : data.check ? 'checkmate' : 'stalemate'
 
             sendPiece = null

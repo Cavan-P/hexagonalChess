@@ -38,6 +38,7 @@ the project, I'll come back to it and make this better later on.
   - [X] Sometimes pieces don't have full range (Noticed queen, king, pawn)
   - [ ] Computer cannot play white
   - [X] prev FEN is not accurate - is the FEN string where previous piece was being dragged and therefore is not represented on the board
+  - [ ] Capturing a pawn on one cell if it has a pawn right in front of it takes both
 
 - [ ] Nice-to-have Visuals
   - [ ] En Passant cell highlights as if it's occupied

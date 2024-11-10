@@ -192,7 +192,7 @@ def computer_move():
         if isinstance(legal_data, tuple):
             legal_moves, en_passant_target, en_passant_occupy, en_passant_flag = legal_data
         else:
-            legal_moves, en_passant_target, en_passant_flag = legal_data, None, False
+            legal_moves, en_passant_target, en_passant_occupy, en_passant_flag = legal_data, None, None, False
 
         # If this piece has a legal move, randomly choose one
         if legal_moves:

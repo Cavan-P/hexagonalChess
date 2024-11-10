@@ -29,8 +29,8 @@ the project, I'll come back to it and make this better later on.
 
   - [X] Checkmate
   - [X] Stalemate
-  - [ ] Turn system
-  - [ ] Computer Opponent
+  - [X] Turn system
+  - [X] Computer Opponent
 
 - [ ] KNOWN BUGS
   - [X] Only legal move sends new FEN strings

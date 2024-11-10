@@ -34,7 +34,7 @@ the project, I'll come back to it and make this better later on.
 
 - [ ] KNOWN BUGS
   - [X] Only legal move sends new FEN strings
-  - [ ] Computer playing en passant doesn't kill en passanted pawn
+  - [X] Computer playing en passant doesn't kill en passanted pawn
   - [X] Sometimes pieces don't have full range (Noticed queen, king, pawn)
   - [ ] Computer cannot play white
   - [X] prev FEN is not accurate - is the FEN string where previous piece was being dragged and therefore is not represented on the board
@@ -42,5 +42,6 @@ the project, I'll come back to it and make this better later on.
 - [ ] Nice-to-have Visuals
   - [ ] En Passant cell highlights as if it's occupied
   - [ ] "Computer Thinking" text (or similar, moves evaluated, etc)
+  - [ ] Highlight what piece the computer moved and where it came from
 
 

@@ -110,6 +110,10 @@ init = _ => {
         ctx.strokeStyle = 'rgba(200, 0, 0, 0.5)'
         ctx.lineWidth = 10
         drawHexagon(checkCell.x, checkCell.y, cellSize, '#00000000', true)
+
+        if(result.length){
+            console.log(result + "!")
+        }
     }
 
     player.update(pieces, cells)

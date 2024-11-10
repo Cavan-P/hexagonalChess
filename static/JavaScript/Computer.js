@@ -4,6 +4,9 @@ class Computer {
 
         this.selectedCell = null
         this.targetCell = null
+
+        this.enPassantTarget = null
+        this.enPassantCell = null
     }
 
     async sendMoveRequest(){
@@ -30,12 +33,16 @@ class Computer {
 
         const data = await this.sendMoveRequest()
 
+        console.log(data)
+
         if(data.message){
             console.log(data.message)
         }
         else {
             this.selectedCell = data.startingCell
             this.targetCell = data.targetCell
+            this.enPassantTarget = data.enPassantTarget
+            this.enPassantCell = data.enPassantPawnCell
 
             this.updateBoard()
         }
@@ -56,11 +63,22 @@ class Computer {
         cells[this.targetCell].occupied = true
         cells[this.targetCell].occupiedBy = movedPiece.piece
 
+        if(this.enPassantTarget == this.targetCell){
+
+            let deadPawn = pieces[pieces.findIndex(p => p.currentCell.num == this.enPassantCell)]
+
+            deadPawn.captured = true
+            capturedPieces.push(deadPawn.piece)
+
+            cells[this.enPassantCell].occupied = false
+            cells[this.enPassantCell].occupiedBy = ''
+        }
+
         previousFenString = currentFenString
         currentFenString = boardToFen()
 
-        console.log("Computer previous: ", previousFenString)
-        console.log("Computer current: ", currentFenString)
+        //console.log("Computer previous: ", previousFenString)
+        //console.log("Computer current: ", currentFenString)
 
         this.checkForCheck(movedPiece.piece)
         

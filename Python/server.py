@@ -167,40 +167,53 @@ def drop_check():
 @app.route('/computer_move', methods=['POST'])
 def computer_move():
     data = request.get_json()
-
-    #Data sent from JS to get the computer's selected move
     fen = data['fen']
     prev_fen = data['prevFen']
     cells = moveLogic.initialize_board(fen)
 
-    #What pieces does the computer still have on the board?
+    # Get all black pieces currently on the board
     living_black_pieces = {char for char in fen if char.islower()}
 
-    #While there's still something left...
+    # Loop until a piece with a legal move is found
     while living_black_pieces:
-        #Select random available piece type
+        # Select a random piece type from remaining pieces
         selected_piece = random.choice(list(living_black_pieces))
 
-        #Get all cells that hold this piece
+        # Find all cells containing this piece type
         selected_piece_cells = [cell for cell in cells if cells[cell].occupied_by == selected_piece]
 
-        #Select a cell holding selected piece
+        # Select a random cell holding the selected piece
         starting_cell = random.choice(selected_piece_cells) if len(selected_piece_cells) > 1 else selected_piece_cells[0]
 
-        #Get all legal moves for this piece
-        legal_cells = find_legal_from_cell(fen, prev_fen, starting_cell)
+        # Retrieve legal moves for the selected piece (may include en passant data for pawns)
+        legal_data = find_legal_from_cell(fen, prev_fen, starting_cell)
 
-        #If this piece has a legal move, pick one of them, and send back the selected starting cell and selected target cell
-        if legal_cells:
-            target_cell = random.choice(legal_cells)
-            return jsonify({'startingCell': starting_cell, 'targetCell': target_cell})
-        
-        #If there are no legal moves for the initial selected piece, remove that piece type from the list and try again
+        # If a pawn, extract en passant data
+        if isinstance(legal_data, tuple):
+            legal_moves, en_passant_target, en_passant_occupy, en_passant_flag = legal_data
+        else:
+            legal_moves, en_passant_target, en_passant_flag = legal_data, None, False
+
+        # If this piece has a legal move, randomly choose one
+        if legal_moves:
+            target_cell = random.choice(legal_moves)
+            
+            # Return response with en passant info if applicable
+            return jsonify({
+                'startingCell': starting_cell,
+                'targetCell': target_cell,
+                'enPassant': en_passant_flag,
+                'enPassantPawnCell': en_passant_occupy,
+                'enPassantTarget': en_passant_target
+            })
+
+        # No legal moves for this piece, so remove it from consideration
         print(f"No legal moves for {selected_piece}, reselecting...")
         living_black_pieces.remove(selected_piece)
 
-    #No legal moves have been found
+    # If no legal moves are found for any piece, return message indicating likely stalemate or checkmate
     return jsonify({'message': 'No legal moves available - likely checkmate or stalemate'})
+
 
 
 """
@@ -959,57 +972,44 @@ def find_all_legal(fen, prev_fen, piece):
 """
 def find_legal_from_cell(fen, prev_fen, cell):
     cells = moveLogic.initialize_board(fen)
-
     piece = cells[cell].occupied_by
+    is_white = piece.isupper()
 
     if piece == 'P' or piece == 'p':
-        moves = move_like_white_pawn(cell, fen, prev_fen)[0] if piece.isupper() else move_like_black_pawn(cell, fen, prev_fen)[0]
+        # Get moves and en passant target cell if applicable
+        move_data = move_like_white_pawn(cell, fen, prev_fen) if is_white else move_like_black_pawn(cell, fen, prev_fen)
+        moves, en_passant_target, en_passant_occupy = move_data[0], move_data[1] if len(move_data) > 1 else None, move_data[2] if len(move_data) > 1 else None
+        en_passant_flag = en_passant_target is not None
 
-        print('pawn', moves)
-
-        return [
-            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
+        # Filter moves to avoid placing own king in check
+        legal_moves = [
+            move for move in moves if simulate_move(fen, cell, move) != ('white' if is_white else 'black')
         ]
-    
+        
+        # Return legal moves with en passant data
+        return legal_moves, en_passant_target, en_passant_occupy, en_passant_flag
+
+    # Handle moves for non-pawn pieces
     elif piece == 'N' or piece == 'n':
-        moves = move_like_knight(cell, fen, 'white' if piece.isupper() else 'black')
-
-        print('knight', moves)
-
-        return [
-            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
-        ]
-    
+        moves = move_like_knight(cell, fen, 'white' if is_white else 'black')
     elif piece == 'B' or piece == 'b':
-        moves = move_like_bishop(cell, fen, 'white' if piece.isupper() else 'black')
-        print('bishop', moves)
-        return [
-            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
-        ]
-    
+        moves = move_like_bishop(cell, fen, 'white' if is_white else 'black')
     elif piece == 'R' or piece == 'r':
-        moves = move_like_rook(cell, fen, 'white' if piece.isupper() else 'black')
-        print('rook', moves)
-        return [
-            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
-        ]
-    
+        moves = move_like_rook(cell, fen, 'white' if is_white else 'black')
     elif piece == 'Q' or piece == 'q':
-        moves = move_like_queen(cell, fen, 'white' if piece.isupper() else 'black')
-        print('queen', moves)
-        return [
-            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
-        ]
-    
+        moves = move_like_queen(cell, fen, 'white' if is_white else 'black')
     elif piece == 'K' or piece == 'k':
-        moves = move_like_king(cell, fen, 'white' if piece.isupper() else 'black')
-        print('king', moves)
-        return [
-            move for move in moves if not simulate_move(fen, cell, move) == ('white' if piece.isupper() else 'black')
-        ]
+        moves = move_like_king(cell, fen, 'white' if is_white else 'black')
+    else:
+        return None  # In case of an unrecognized piece
 
-
-
+    # Filter moves to avoid placing own king in check
+    legal_moves = [
+        move for move in moves if simulate_move(fen, cell, move) != ('white' if is_white else 'black')
+    ]
+    
+    # Return only legal moves for non-pawn pieces
+    return legal_moves
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

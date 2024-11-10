@@ -32,7 +32,13 @@ class Piece {
 
     assignCurrentCell(cells){
         let closestCell = this.findClosestCell(cells)
+        if(this.currentCell){
+            this.currentCell.occupied = false
+            this.currentCell.oddupiedBy = ''
+        }
         this.currentCell = closestCell
+        this.currentCell.occupied = true
+        this.currentCell.occupiedBy = this.piece
     }
 
     startDrag(){

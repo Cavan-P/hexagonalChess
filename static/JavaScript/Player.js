@@ -4,19 +4,36 @@ class Player {
         this.selectedPiece = null
 
         this.closestMouseCell = null
+
+        this.legalMoves = []
+        this.enPassant = []
     }
 
     update(pieces, cells){
+        if(this.getPieceAt(cells, pieces, mouseX, mouseY)){
+            document.body.style.cursor = 'grab'
+        }
+        else{
+            document.body.style.cursor = 'default'
+        }
         if(pressed){
+            currentFenString = boardToFen()
             //console.log("Pressing in player!")
             if(!this.selectedPiece){
                 this.selectedPiece = this.getPieceAt(cells, pieces, mouseX, mouseY)
-                //console.log("Selected piece ", this.selectedPiece.piece)
+
                 if(this.selectedPiece){
+                    currentFenString = boardToFen()
+                    if(!previousFenString.length) previousFenString = boardToFen()
+
+                    this.getLegalMoves()
                     this.selectedPiece.startDrag()
+                    pieces.splice(pieces.indexOf(this.selectedPiece), 1); // Remove selected piece
+                    pieces.push(this.selectedPiece); // Add it back at the end
                 }
             }
             else if(this.selectedPiece.dragging){
+                document.body.style.cursor = 'grabbing'
                 this.selectedPiece.updateDrag(mouseX, mouseY)
 
                 this.closestMouseCell = this.getClosestCellToMouse(cells)
@@ -26,8 +43,39 @@ class Player {
             }
         }
         else if(this.selectedPiece){
-            this.selectedPiece.stopDrag(cells)
+            let potentialTarget = this.getClosestCellToMouse(cells)
+
+            if(this.legalMoves.includes(potentialTarget.num)){
+                sendPiece = this.selectedPiece
+
+                if(potentialTarget.num == this.enPassant[0]){
+                    let deadPawn = pieces[pieces.findIndex(p => p.currentCell.num == this.enPassant[1])]
+
+                    deadPawn.captured = true
+                    capturedPieces.push(deadPawn.piece)
+                }
+
+                this.selectedPiece.stopDrag(cells)
+
+                previousFenString = currentFenString
+                currentFenString = boardToFen()
+
+                //console.log("Previous upon drop: ", previousFenString)
+                //console.log("Current upon drop: ", currentFenString)
+
+                this.checkForCheck()
+            }
+            else {
+                this.selectedPiece.dragging = false
+                this.selectedPiece.size = this.selectedPiece.landSize
+                this.selectedPiece.x = this.selectedPiece.currentCell.x
+                this.selectedPiece.y = this.selectedPiece.currentCell.y
+            }
+
             this.selectedPiece = null
+
+            document.body.style.cursor = 'default'
+            cells.forEach(c => c.landable = false)
         }
     }
 
@@ -52,4 +100,49 @@ class Player {
 
         return pieces[piece]
     }
+
+    getLegalMoves(){
+        fetch('http://localhost:8000/find_legal_moves', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fen: currentFenString,
+                prevFen: previousFenString,
+                piece: this.selectedPiece.piece,
+                startingCell: this.selectedPiece.currentCell.num
+            })
+        })
+        .then(response => response.json())
+        .then(validMoves => {
+
+            this.legalMoves = validMoves.moves
+            this.enPassant = validMoves.enpassant
+            cells.forEach(c => validMoves.moves.includes(c.num) ? c.landable = true : c.landable = false)
+        })
+    }
+
+    checkForCheck(){
+        fetch('http://localhost:8000/drop_check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fen: currentFenString,
+                prevFen: previousFenString,
+                piece: sendPiece.piece
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+
+            checkFlag = data.check
+            result = data.movesExist ? '' : data.check ? 'checkmate' : 'stalemate'
+
+            sendPiece = null
+        })
+    }
+
 }

@@ -10,12 +10,12 @@ ctx.textAlign = "center"
 /** Debug options */
 //Cells
 const showCoords = !true
-const showCellNumbers = true
-const showOccupiedBy = true
+const showCellNumbers = !true
+const showOccupiedBy = !true
 
 //Pieces
-const showOccupiedPieceCell = true
-const showOccupiedCell = true
+const showOccupiedPieceCell = !true
+const showOccupiedCell = !true
 
 var turn = 0 //Even is white's move
 const playerColor = 'white'
@@ -43,12 +43,16 @@ let FEN = 'bqknbnr2rp1b1p1p2p2p1p3pp4p993P4PP3P1P2P2P1P1B1PR2RNBNQKB'
 //Another one - King moved 24-13, queen now stops at 24
 //FEN = 'q3b1r5b1p4p1pp1k1R1rp2PP1P1n1PP4P9995B1P3RNB2KB'
 
-var moveData = {}
-var dropData = {}
 var currentFenString = boardToFen()
 var previousFenString = boardToFen()
 
 var turn = 0
+
+var checkFlag = false
+var checkCell = null
+var result = ''//'checkmate', 'stalemate', ''
+var sendPiece = null
+var landedLegal = false
 
 const computer = new Computer(computerColor)
 const player = new Player(playerColor)
@@ -73,6 +77,7 @@ init = _ => {
     ctx.fill()
 
     ctx.strokeStyle = '#000'
+    ctx.lineWidth = 7
     drawBoard(cellSize, 0, 1)
     drawBoard(cellSize, [
         '#D18B47FF',     /*  Dark cell    */
@@ -100,11 +105,29 @@ init = _ => {
         cells[i].display(showCellNumbers, showCoords, showOccupiedBy)
     }
 
+    if(checkFlag){
+        const checkCell = cells[cells.findIndex(c => c.occupiedBy == (checkFlag == 'white' ? 'K' : 'k'))]
+        ctx.strokeStyle = 'rgba(200, 0, 0, 0.5)'
+        ctx.lineWidth = 10
+        drawHexagon(checkCell.x, checkCell.y, cellSize, '#00000000', true)
+    }
+
     player.update(pieces, cells)
 
     //Display pieces ON TOP OF all highlighting shennanigans
     for(let piece of pieces){
         piece.display(showOccupiedPieceCell)
+    }
+
+    for(let i = 0; i < pieces.length; i++){
+        for(let j = i + 1; j < pieces.length; j++){
+            if(pieces[i].currentCell == pieces[j].currentCell){
+                const pieceToCapture = i < j ? pieces[i] : pieces[j]
+                pieceToCapture.captured = true
+                capturedPieces.push(pieceToCapture.piece)
+                break
+            }
+        }
     }
 
     displayCapturedPieces(ctx)

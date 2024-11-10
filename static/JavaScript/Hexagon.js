@@ -9,7 +9,7 @@ drawHexagon = (x, y, s, col, stroke) => {
     }
     ctx.closePath()
     
-    if(stroke) ctx.lineWidth = 5, ctx.stroke()
+    if(stroke) ctx.stroke()
 
     ctx.fill()
 }

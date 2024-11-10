@@ -11,6 +11,8 @@ class Cell {
 
         this.occupied = false
         this.occupiedBy = ''
+
+        this.landable = false
     }
 
     update(pieces){
@@ -50,6 +52,15 @@ class Cell {
         }
         if(this.occupied && showOccupiedCell){
             drawHexagon(this.x, this.y, cellSize, '#FF00005C', false)
+        }
+        if(this.landable){
+            ctx.lineWidth = 5
+            if(this.occupied){
+                drawHexagon(this.x, this.y, cellSize, 'rgba(200, 0, 0, 0.8)', false)
+            }
+            else{
+                drawHexagon(this.x, this.y, cellSize / 1.3, 'rgba(0, 100, 0, 0.4)', false)
+            }
         }
     }
 }

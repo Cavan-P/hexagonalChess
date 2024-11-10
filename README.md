@@ -11,8 +11,7 @@ cell that said piece is currently on.  I can use this information to reconstruct
 the grid on the Python side, determine the piece's legal moves, and send a list of
 valid cells back to the JS side, which in turn highlights the appropriate cells.
 
-Check is actually functional, but at the moment there is no checkmate or stalemate.
-My methods of processing check are inefficient but enough for me to continue on with
+Check is actually functional, my methods of processing check are inefficient but enough for me to continue on with
 the project, I'll come back to it and make this better later on.
 
 ### TODO
@@ -30,14 +29,18 @@ the project, I'll come back to it and make this better later on.
 
   - [X] Checkmate
   - [X] Stalemate
-  - [X] Turn system
-  - [X] Computer Opponent
+  - [ ] Turn system
+  - [ ] Computer Opponent
 
 - [ ] KNOWN BUGS
   - [X] Only legal move sends new FEN strings
   - [ ] Computer playing en passant doesn't kill en passanted pawn
-  - [ ] Sometimes pieces don't have full range (Noticed queen, king, pawn)
+  - [X] Sometimes pieces don't have full range (Noticed queen, king, pawn)
   - [ ] Computer cannot play white
-  - [ ] prev FEN is not accurate - is the FEN string where previous piece was being dragged and therefore is not represented on the board
+  - [X] prev FEN is not accurate - is the FEN string where previous piece was being dragged and therefore is not represented on the board
+
+- [ ] Nice-to-have Visuals
+  - [ ] En Passant cell highlights as if it's occupied
+  - [ ] "Computer Thinking" text (or similar, moves evaluated, etc)
 
 

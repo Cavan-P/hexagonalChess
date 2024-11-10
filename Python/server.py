@@ -128,8 +128,8 @@ def find_legal_moves():
             (piece.islower() and simulate_move(fen_string, starting_cell, move) == 'black'))
     ]
 
-    print("Found valid moves: " + str(valid_moves))
-    print("Found legal moves for piece: " + str(find_all_legal(fen_string, prev_fen, piece)))
+    #print("Found valid moves: " + str(valid_moves))
+    #print("Found legal moves for piece: " + str(find_all_legal(fen_string, prev_fen, piece)))
     
     #Send back list of valid moves, and any necessary en passant information if it's applicable
     return jsonify({"moves": valid_moves, "enpassant": [en_passant_target_cell, en_passant_passed_pawn]})

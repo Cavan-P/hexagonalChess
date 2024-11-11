@@ -4,15 +4,16 @@ This is a project I've been wanting to get to work on for a while,
 and I've finally gotten around to sitting down and finishing it.
 
 The visuals are all done with JavaScript, while I have a Python server
-running the backend to process legal moves and the computer opponent, eventually.
-When a piece is grabbed, information such as the current FEN string (custom FEN
-style syntax for the hexagonal board), the piece that's being selected, and the
-cell that said piece is currently on.  I can use this information to reconstruct
-the grid on the Python side, determine the piece's legal moves, and send a list of
-valid cells back to the JS side, which in turn highlights the appropriate cells.
+running the backend to process legal moves and the computer opponent.
+When a piece is grabbed, information such as the FEN string (a custom
+FEN-style syntax to compensate for the hexagonal grid) and selected piece
+is sent to the backend, where legal moves are processed and then sent back
+to the JavaScript side to be highlighted.
 
 Check is actually functional, my methods of processing check are inefficient but enough for me to continue on with
 the project, I'll come back to it and make this better later on.
+
+Run the game with `python Python/server.py` from the main directory and visit http://localhost:8000 to play.
 
 ### TODO
 - [X] Visuals

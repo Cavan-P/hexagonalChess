@@ -65,6 +65,9 @@ black_promotion = [
     "5 0 -5"
 ]
 
+attack_map = [{} for _ in range(91)]
+dependency_map = {}
+
 @app.route('/find_legal_moves', methods=['POST'])
 def find_legal_moves():
     move_data = request.json
@@ -215,7 +218,8 @@ def computer_move():
     # If no legal moves are found for any piece, return message indicating likely stalemate or checkmate
     return jsonify({'message': 'No legal moves available - likely checkmate or stalemate'})
 
-
+def initalize_attack_map():
+    pass
 
 """
     Validate the moves for pawns - left separate due to en passant shennanigans

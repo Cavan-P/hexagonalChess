@@ -140,5 +140,3 @@ def board_to_fen(cells):
         fen += str(skips)
 
     return fen
-
-

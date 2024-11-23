@@ -9,7 +9,7 @@ ctx.textAlign = "center"
 
 /** Debug options */
 //Cells
-const showCoords = !true
+const showCoords = true
 const showCellNumbers = !true
 const showOccupiedBy = !true
 

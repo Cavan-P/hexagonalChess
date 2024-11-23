@@ -27,6 +27,7 @@ Run the game with `python Python/server.py` from the main directory and visit ht
     - [X] Check (Make this more efficient tho)
 
   - [ ] Promotion
+    - [ ] Offer in-game choice, currently is just queen
 
   - [X] Checkmate
   - [X] Stalemate

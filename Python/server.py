@@ -131,7 +131,7 @@ values = {
 attack_map = [[] for _ in range(91)]
 
 #List of every OCCUPIED cell, holds ALL cells it could theoretically reach if board is empty
-dependency_map = []
+dependency_map = {}
 
 
 @app.route('/computer_move', methods=['POST'])
@@ -152,7 +152,42 @@ def computer_move():
         for move in moves_from_cell:
             attack_map[move].append({'piece': piece_on_cell, 'attacking_cell': cell})
 
-    pprint(attack_map)
+    #pprint(attack_map)
+
+    for c in cells:
+        cell = cells[c]
+
+        if not cell.occupied_by:
+            continue
+
+        encountered_piece = cell.occupied_by
+
+        if encountered_piece == 'p':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_black_pawn(c, fen, prev_fen)[0]} #Pawn ones still return a tuple
+
+        elif encountered_piece == 'P':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_white_pawn(c, fen, prev_fen)[0]}
+
+        elif encountered_piece == 'N' or encountered_piece == 'n':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_knight(c, fen)}
+        
+        elif encountered_piece == 'B' or encountered_piece == 'b':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_bishop(c, fen)}
+
+        elif encountered_piece == 'R' or encountered_piece == 'r':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_rook(c, fen)}
+
+        elif encountered_piece == 'Q' or encountered_piece == 'q':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_queen(c, fen)}
+
+        elif encountered_piece == 'K' or encountered_piece == 'k':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_king(c, fen)}
+
+    pprint(dependency_map)
+
+
+
+
 
 
     # Get all black pieces currently on the board

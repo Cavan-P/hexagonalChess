@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import moveLogic
+import board_utils
 import brain
 import copy
 import random
+import utils
+
 
 app = Flask(__name__, static_folder='../static')
 CORS(app)
@@ -173,7 +175,7 @@ def computer_move():
     data = request.get_json()
     fen = data['fen']
     prev_fen = data['prevFen']
-    cells = moveLogic.initialize_board(fen)
+    cells = board_utils.initialize_board(fen)
 
     # Get all black pieces currently on the board
     living_black_pieces = {char for char in fen if char.islower()}
@@ -225,20 +227,20 @@ def initalize_attack_map():
     Validate the moves for pawns - left separate due to en passant shennanigans
 """
 def move_like_white_pawn(starting_cell, fen, prev_fen):
-    cells = moveLogic.initialize_board(fen)
+    cells = board_utils.initialize_board(fen)
     valid_cells = []
 
     #Starting coordinates
-    start_coords = get_coordinates_from_cell(starting_cell, fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
 
     #Necessary for checking if it's still on the starting cell of a friendly-colored pawn (and eventually promotion)
     string_form_coords = str(start_coords[0]) + " " + str(start_coords[1]) + " " + str(start_coords[2])
 
     #Cell values for each...
-    one_cell_forward = get_cell_with_coordinates(start_coords[0], start_coords[1] - 1, start_coords[2] + 1, fen)
-    two_cells_forward = get_cell_with_coordinates(start_coords[0], start_coords[1] - 2, start_coords[2] + 2, fen)
-    upper_left = get_cell_with_coordinates(start_coords[0] - 1, start_coords[1], start_coords[2] + 1, fen)
-    upper_right = get_cell_with_coordinates(start_coords[0] + 1, start_coords[1] - 1, start_coords[2], fen)
+    one_cell_forward = utils.get_cell_with_coordinates(start_coords[0], start_coords[1] - 1, start_coords[2] + 1, fen)
+    two_cells_forward = utils.get_cell_with_coordinates(start_coords[0], start_coords[1] - 2, start_coords[2] + 2, fen)
+    upper_left = utils.get_cell_with_coordinates(start_coords[0] - 1, start_coords[1], start_coords[2] + 1, fen)
+    upper_right = utils.get_cell_with_coordinates(start_coords[0] + 1, start_coords[1] - 1, start_coords[2], fen)
 
     en_passant_target = get_two_cell_move_white_enpassant(prev_fen, fen)
     en_passant_target_cell = None
@@ -265,19 +267,19 @@ def move_like_white_pawn(starting_cell, fen, prev_fen):
 
     return (valid_cells, en_passant_target_cell, en_passant_passed_pawn)
 def move_like_black_pawn(starting_cell, fen, prev_fen):
-    cells = moveLogic.initialize_board(fen)
+    cells = board_utils.initialize_board(fen)
     valid_cells = []
-    start_coords = get_coordinates_from_cell(starting_cell, fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
 
     string_form_coords = str(start_coords[0]) + " " + str(start_coords[1]) + " " + str(start_coords[2])
 
-    one_cell_forward = get_cell_with_coordinates(start_coords[0], start_coords[1] + 1, start_coords[2] - 1, fen)
-    two_cells_forward = get_cell_with_coordinates(start_coords[0], start_coords[1] + 2, start_coords[2] - 2, fen)
-    lower_left = get_cell_with_coordinates(start_coords[0] - 1, start_coords[1] + 1, start_coords[2], fen)
-    lower_right = get_cell_with_coordinates(start_coords[0] + 1, start_coords[1], start_coords[2] - 1, fen)
+    one_cell_forward = utils.get_cell_with_coordinates(start_coords[0], start_coords[1] + 1, start_coords[2] - 1, fen)
+    two_cells_forward = utils.get_cell_with_coordinates(start_coords[0], start_coords[1] + 2, start_coords[2] - 2, fen)
+    lower_left = utils.get_cell_with_coordinates(start_coords[0] - 1, start_coords[1] + 1, start_coords[2], fen)
+    lower_right = utils.get_cell_with_coordinates(start_coords[0] + 1, start_coords[1], start_coords[2] - 1, fen)
 
     en_passant_target = get_two_cell_move_black_enpassant(prev_fen, fen)
-    #en_passant_target_coords = get_coordinates_from_cell(en_passant_target) if en_passant_target != None else None
+    #en_passant_target_coords = utils.get_coordinates_from_cell(en_passant_target) if en_passant_target != None else None
     en_passant_target_cell = None
     en_passant_passed_pawn = None
 
@@ -303,8 +305,8 @@ def move_like_black_pawn(starting_cell, fen, prev_fen):
     return (valid_cells, en_passant_target_cell, en_passant_passed_pawn)
 
 def move_like_bishop(starting_cell, fen, color):
-    cells = moveLogic.initialize_board(fen)
-    start_coords = get_coordinates_from_cell(starting_cell, fen)
+    cells = board_utils.initialize_board(fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
 
     valid_cells = []
 
@@ -316,7 +318,7 @@ def move_like_bishop(starting_cell, fen, color):
     moves = 1
 
     while upper_right_q <= 5 and upper_right_r >= -5 and upper_right_s <= 5:
-        cell = get_cell_with_coordinates(start_coords[0] + moves, start_coords[1] - (moves * 2), start_coords[2] + moves, fen)
+        cell = utils.get_cell_with_coordinates(start_coords[0] + moves, start_coords[1] - (moves * 2), start_coords[2] + moves, fen)
         
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -338,7 +340,7 @@ def move_like_bishop(starting_cell, fen, color):
     moves = 1
 
     while right_q <= 5 and right_r >= -5 and right_s >= -5:
-        cell = get_cell_with_coordinates(start_coords[0] + (moves * 2), start_coords[1] - moves, start_coords[2] - moves, fen)
+        cell = utils.get_cell_with_coordinates(start_coords[0] + (moves * 2), start_coords[1] - moves, start_coords[2] - moves, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -360,7 +362,7 @@ def move_like_bishop(starting_cell, fen, color):
     moves = 1
 
     while lower_right_q <= 5 and lower_right_r <= 5 and lower_right_s >= -5:
-        cell = get_cell_with_coordinates(start_coords[0] + moves, start_coords[1] + moves, start_coords[2] - (moves * 2), fen)
+        cell = utils.get_cell_with_coordinates(start_coords[0] + moves, start_coords[1] + moves, start_coords[2] - (moves * 2), fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -382,7 +384,7 @@ def move_like_bishop(starting_cell, fen, color):
     moves = 1
 
     while lower_left_q >= -5 and lower_left_r <= 5 and lower_left_s >= -5:
-        cell =  get_cell_with_coordinates(start_coords[0] - moves, start_coords[1] + (moves * 2), start_coords[2] - moves, fen)
+        cell =  utils.get_cell_with_coordinates(start_coords[0] - moves, start_coords[1] + (moves * 2), start_coords[2] - moves, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -404,7 +406,7 @@ def move_like_bishop(starting_cell, fen, color):
     moves = 1
 
     while left_q >= -5 and left_r <= 5 and left_s <= 5:
-        cell = get_cell_with_coordinates(start_coords[0] - (moves * 2), start_coords[1] + moves, start_coords[2] + moves, fen)
+        cell = utils.get_cell_with_coordinates(start_coords[0] - (moves * 2), start_coords[1] + moves, start_coords[2] + moves, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -426,7 +428,7 @@ def move_like_bishop(starting_cell, fen, color):
     moves = 1
 
     while upper_left_q >= -5 and upper_left_r >= -5 and upper_left_s <= 5:
-        cell = get_cell_with_coordinates(start_coords[0] - moves, start_coords[1] - moves, start_coords[2] + (moves * 2), fen)
+        cell = utils.get_cell_with_coordinates(start_coords[0] - moves, start_coords[1] - moves, start_coords[2] + (moves * 2), fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -443,8 +445,8 @@ def move_like_bishop(starting_cell, fen, color):
     return valid_cells
 
 def move_like_knight(starting_cell, fen, color):
-    cells = moveLogic.initialize_board(fen)
-    start_coords = get_coordinates_from_cell(starting_cell, fen)
+    cells = board_utils.initialize_board(fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
 
     valid_cells = []
 
@@ -476,7 +478,7 @@ def move_like_knight(starting_cell, fen, color):
 
     
     for j in range(len(new_coords)):
-        target_cell = get_cell_with_coordinates(start_coords[0] + new_coords[j][0], start_coords[1] + new_coords[j][1], start_coords[2] + new_coords[j][2], fen)
+        target_cell = utils.get_cell_with_coordinates(start_coords[0] + new_coords[j][0], start_coords[1] + new_coords[j][1], start_coords[2] + new_coords[j][2], fen)
         if color == 'black':
             if target_cell is not None and cells[target_cell] is not None and (cells[target_cell].occupied_by is None or cells[target_cell].occupied_by.isupper()):
                 valid_cells.append(target_cell)
@@ -488,8 +490,8 @@ def move_like_knight(starting_cell, fen, color):
     return valid_cells
 
 def move_like_rook(starting_cell, fen, color):
-    cells = moveLogic.initialize_board(fen)
-    start_coords = get_coordinates_from_cell(starting_cell, fen)
+    cells = board_utils.initialize_board(fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
     q = start_coords[0]
     r = start_coords[1]
     s = start_coords[2]
@@ -503,7 +505,7 @@ def move_like_rook(starting_cell, fen, color):
     moves = 1
 
     while upper_left_q >= -5 and upper_left_s <= 5:
-        cell = get_cell_with_coordinates(q - moves, r, s + moves, fen)
+        cell = utils.get_cell_with_coordinates(q - moves, r, s + moves, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -524,7 +526,7 @@ def move_like_rook(starting_cell, fen, color):
     moves = 1
 
     while up_r >= -5 and up_s <= 5:
-        cell = get_cell_with_coordinates(q, r - moves, s + moves, fen)
+        cell = utils.get_cell_with_coordinates(q, r - moves, s + moves, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -545,7 +547,7 @@ def move_like_rook(starting_cell, fen, color):
     moves = 1
 
     while upper_right_q <= 5 and upper_right_r >= -5:
-        cell = get_cell_with_coordinates(q + moves, r - moves, s, fen)
+        cell = utils.get_cell_with_coordinates(q + moves, r - moves, s, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -566,7 +568,7 @@ def move_like_rook(starting_cell, fen, color):
     moves = 1
 
     while lower_right_q <= 5 and lower_right_s >= -5:
-        cell = get_cell_with_coordinates(q + moves, r, s - moves, fen)
+        cell = utils.get_cell_with_coordinates(q + moves, r, s - moves, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -587,7 +589,7 @@ def move_like_rook(starting_cell, fen, color):
     moves = 1
 
     while b_r <= 5 and b_s >= -5:
-        cell = get_cell_with_coordinates(q, r + moves, s - moves, fen)
+        cell = utils.get_cell_with_coordinates(q, r + moves, s - moves, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -608,7 +610,7 @@ def move_like_rook(starting_cell, fen, color):
     moves = 1
 
     while bottom_left_q >= -5 and bottom_left_r <= 5:
-        cell = get_cell_with_coordinates(q - moves, r + moves, s, fen)
+        cell = utils.get_cell_with_coordinates(q - moves, r + moves, s, fen)
 
         if cell is not None and cells[cell].occupied_by is not None:
             if (color == 'white' and cells[cell].occupied_by.islower()) or (color == 'black' and cells[cell].occupied_by.isupper()):
@@ -624,8 +626,8 @@ def move_like_rook(starting_cell, fen, color):
     return valid_cells
 
 def move_like_king(starting_cell, fen, color):
-    cells = moveLogic.initialize_board(fen)
-    start_coords = get_coordinates_from_cell(starting_cell, fen)
+    cells = board_utils.initialize_board(fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
 
     valid_cells = []
 
@@ -646,7 +648,7 @@ def move_like_king(starting_cell, fen, color):
 
     
     for j in range(len(new_coords)):
-        target_cell = get_cell_with_coordinates(start_coords[0] + new_coords[j][0], start_coords[1] + new_coords[j][1], start_coords[2] + new_coords[j][2], fen)
+        target_cell = utils.get_cell_with_coordinates(start_coords[0] + new_coords[j][0], start_coords[1] + new_coords[j][1], start_coords[2] + new_coords[j][2], fen)
         if color == 'black':
             if target_cell is not None and cells[target_cell] is not None and (cells[target_cell].occupied_by is None or cells[target_cell].occupied_by.isupper()):
                 valid_cells.append(target_cell)
@@ -667,32 +669,11 @@ def move_like_queen(starting_cell, fen, color):
 
     return valid_cells
 
-"""
-    Get coordinate for specific cell number
-"""
-
-def get_coordinates_from_cell(num, fen):
-    cells = moveLogic.initialize_board(fen)
-
-    return (cells[num].q, cells[num].r, cells[num].s) if cells[num] is not None else None
-
-"""
-    Testing that each cell is assigned the proper coordinates
-"""
-def get_cell_with_coordinates(q, r, s, fen):
-    cells = moveLogic.initialize_board(fen)
-
-    for cell in range(len(cells)):
-        if cells[cell].q == q and cells[cell].r == r and cells[cell].s == s:
-           return cells[cell].num
-        
-    return None
-
 def get_two_cell_move_black_enpassant(prev_fen, current_fen):
 
     #Used for checking if one pawn moved two cells in the last move
-    previous_cells = moveLogic.initialize_board(prev_fen)
-    current_cells = moveLogic.initialize_board(current_fen)
+    previous_cells = board_utils.initialize_board(prev_fen)
+    current_cells = board_utils.initialize_board(current_fen)
 
     en_passant_target_cell = None
 
@@ -713,8 +694,8 @@ def get_two_cell_move_black_enpassant(prev_fen, current_fen):
     return en_passant_target_cell
 
 def get_two_cell_move_white_enpassant(prev_fen, current_fen):
-    previous_cells = moveLogic.initialize_board(prev_fen)
-    current_cells = moveLogic.initialize_board(current_fen)
+    previous_cells = board_utils.initialize_board(prev_fen)
+    current_cells = board_utils.initialize_board(current_fen)
 
     en_passant_target_cell = None
 
@@ -740,7 +721,7 @@ def get_two_cell_move_white_enpassant(prev_fen, current_fen):
 
 """
 def is_check(fen, color):
-    cells = moveLogic.initialize_board(fen)
+    cells = board_utils.initialize_board(fen)
     white_king = None
     black_king = None
 
@@ -753,14 +734,14 @@ def is_check(fen, color):
             white_king = cell
 
     #Get coordinates for the kings
-    white_king_coords = get_coordinates_from_cell(white_king, fen)
-    black_king_coords = get_coordinates_from_cell(black_king, fen)
+    white_king_coords = utils.get_coordinates_from_cell(white_king, fen)
+    black_king_coords = utils.get_coordinates_from_cell(black_king, fen)
 
     #Checking check with pawns
-    upper_left = get_cell_with_coordinates(white_king_coords[0] - 1, white_king_coords[1], white_king_coords[2] + 1, fen)
-    upper_right = get_cell_with_coordinates(white_king_coords[0] + 1, white_king_coords[1] - 1, white_king_coords[2], fen)
-    lower_left = get_cell_with_coordinates(black_king_coords[0] - 1, black_king_coords[1] + 1, black_king_coords[2], fen)
-    lower_right = get_cell_with_coordinates(black_king_coords[0] + 1, black_king_coords[1], black_king_coords[2] - 1, fen)
+    upper_left = utils.get_cell_with_coordinates(white_king_coords[0] - 1, white_king_coords[1], white_king_coords[2] + 1, fen)
+    upper_right = utils.get_cell_with_coordinates(white_king_coords[0] + 1, white_king_coords[1] - 1, white_king_coords[2], fen)
+    lower_left = utils.get_cell_with_coordinates(black_king_coords[0] - 1, black_king_coords[1] + 1, black_king_coords[2], fen)
+    lower_right = utils.get_cell_with_coordinates(black_king_coords[0] + 1, black_king_coords[1], black_king_coords[2] - 1, fen)
 
     #Check white king for black encounters
     if color == 'white':
@@ -813,7 +794,7 @@ def is_check(fen, color):
 """
 def simulate_move(fen, start_cell, target_cell):
 
-    cells = moveLogic.initialize_board(fen)
+    cells = board_utils.initialize_board(fen)
     cells_copy = copy.deepcopy(cells)
 
     #If the target cell contains a king, there's no need to simulate the move.  Kings cannot be captured
@@ -830,7 +811,7 @@ def simulate_move(fen, start_cell, target_cell):
     cells_copy[target_cell].occupied_by = piece
 
     #Get the FEN string for the simulated position
-    new_fen = moveLogic.board_to_fen(cells_copy)
+    new_fen = board_utils.board_to_fen(cells_copy)
 
     #If we moved a black piece, see if we put ourselves in check
     if piece.islower():
@@ -850,7 +831,7 @@ def simulate_move(fen, start_cell, target_cell):
 """
 def find_all_legal(fen, prev_fen, piece):
 
-    cells = moveLogic.initialize_board(fen)
+    cells = board_utils.initialize_board(fen)
 
     #Get every cell that contains each piece type
     white_pawn_cells = [cell for cell in cells if cells[cell].occupied_by == 'P']
@@ -976,7 +957,7 @@ def find_all_legal(fen, prev_fen, piece):
     Find all legal moves (considering check) for whatever piece is occupying a given cell
 """
 def find_legal_from_cell(fen, prev_fen, cell):
-    cells = moveLogic.initialize_board(fen)
+    cells = board_utils.initialize_board(fen)
     piece = cells[cell].occupied_by
     is_white = piece.isupper()
 

@@ -1,5 +1,5 @@
 from Cell import Cell
-import moveLogic
+import board_utils
 
 """
     Empty hexagonal grid for Piece Cell Table

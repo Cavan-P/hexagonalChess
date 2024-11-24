@@ -89,7 +89,6 @@ def find_legal_moves():
     #Send back list of valid moves, and any necessary en passant information if it's applicable
     return jsonify({"moves": valid_moves, "enpassant": [en_passant_target_cell, en_passant_passed_pawn]})
     
-
 @app.route('/drop_check', methods=['POST'])
 def drop_check():
     data = request.get_json()
@@ -98,6 +97,7 @@ def drop_check():
     fen = data['fen']
     prev_fen = data['prevFen']
     piece = data['piece']
+    cells = board_utils.initialize_board(fen)
 
     #Backwards piece color, because we're checking if the move made is opponent check
     color = 'black' if piece.isupper() else 'white'
@@ -107,6 +107,23 @@ def drop_check():
     moves_exist = False
 
     pieces = ('p n b r q k' if color == 'black' else 'P N B R Q K').split()
+
+    if attack_map is None:
+        initialize_attack_map(cells, fen, prev_fen)
+    #pprint(attack_map)
+
+    if dependency_map is None:
+        initialize_dependency_map(cells, fen, prev_fen)
+    #pprint(dependency_map)
+
+
+    #Return old_cell, new_cell, moved_piece
+    move_info = utils.compare_fen(fen, prev_fen)
+
+    print("Moved piece is", piece)
+    update_dependency_map(move_info[0], move_info[1])
+    update_attack_map(move_info[0], move_info[1], move_info[2], fen, prev_fen)
+    pprint(attack_map)
 
     #Find all legal moves for each piece type
     #If there are no moves, it's either checkmate or stalemate
@@ -128,10 +145,10 @@ values = {
 }
 
 #List of every cell, holds what cell it can be reached by and what piece is occupying that cell
-attack_map = [[] for _ in range(91)]
+attack_map = None
 
 #List of every OCCUPIED cell, holds ALL cells it could theoretically reach if board is empty
-dependency_map = {}
+dependency_map = None
 
 
 @app.route('/computer_move', methods=['POST'])
@@ -140,55 +157,6 @@ def computer_move():
     fen = data['fen']
     prev_fen = data['prevFen']
     cells = board_utils.initialize_board(fen)
-
-    for cell in cells:
-        #`cell` is only cell number
-        moves_from_cell = move_logic.find_legal_from_cell(fen, prev_fen, cell)
-        piece_on_cell = cells[cell].occupied_by
-        #print(piece_on_cell)
-        if isinstance(moves_from_cell, tuple):
-            moves_from_cell = moves_from_cell[0]
-
-        for move in moves_from_cell:
-            attack_map[move].append({'piece': piece_on_cell, 'attacking_cell': cell})
-
-    #pprint(attack_map)
-
-    for c in cells:
-        cell = cells[c]
-
-        if not cell.occupied_by:
-            continue
-
-        encountered_piece = cell.occupied_by
-
-        if encountered_piece == 'p':
-            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_black_pawn(c, fen, prev_fen)[0]} #Pawn ones still return a tuple
-
-        elif encountered_piece == 'P':
-            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_white_pawn(c, fen, prev_fen)[0]}
-
-        elif encountered_piece == 'N' or encountered_piece == 'n':
-            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_knight(c, fen)}
-        
-        elif encountered_piece == 'B' or encountered_piece == 'b':
-            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_bishop(c, fen)}
-
-        elif encountered_piece == 'R' or encountered_piece == 'r':
-            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_rook(c, fen)}
-
-        elif encountered_piece == 'Q' or encountered_piece == 'q':
-            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_queen(c, fen)}
-
-        elif encountered_piece == 'K' or encountered_piece == 'k':
-            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_king(c, fen)}
-
-    pprint(dependency_map)
-
-
-
-
-
 
     # Get all black pieces currently on the board
     living_black_pieces = {char for char in fen if char.islower()}
@@ -232,6 +200,91 @@ def computer_move():
 
     # If no legal moves are found for any piece, return message indicating likely stalemate or checkmate
     return jsonify({'message': 'No legal moves available - likely checkmate or stalemate'})
+
+def initialize_attack_map(cells, fen, prev_fen):
+    global attack_map
+
+    if attack_map is None:
+        attack_map = [[] for _ in range(91)]
+
+    for cell in cells:
+        #`cell` is only cell number
+        moves_from_cell = move_logic.find_legal_from_cell(fen, prev_fen, cell)
+        piece_on_cell = cells[cell].occupied_by
+        #print(piece_on_cell)
+        if isinstance(moves_from_cell, tuple):
+            moves_from_cell = moves_from_cell[0]
+
+        for move in moves_from_cell:
+            attack_map[move].append({'piece': piece_on_cell, 'attacking_cell': cell})
+def initialize_dependency_map(cells, fen, prev_fen):
+
+    global dependency_map
+
+    if dependency_map is None:
+        dependency_map = {}
+
+    for c in cells:
+        cell = cells[c]
+
+        if not cell.occupied_by:
+            continue
+
+        encountered_piece = cell.occupied_by
+
+        if encountered_piece == 'p':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_black_pawn(c, fen, prev_fen)[0]} #Pawn ones still return a tuple
+
+        elif encountered_piece == 'P':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_white_pawn(c, fen, prev_fen)[0]}
+
+        elif encountered_piece == 'N' or encountered_piece == 'n':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_knight(c, fen)}
+        
+        elif encountered_piece == 'B' or encountered_piece == 'b':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_bishop(c, fen)}
+
+        elif encountered_piece == 'R' or encountered_piece == 'r':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_rook(c, fen)}
+
+        elif encountered_piece == 'Q' or encountered_piece == 'q':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_queen(c, fen)}
+
+        elif encountered_piece == 'K' or encountered_piece == 'k':
+            dependency_map[c] = {'piece': encountered_piece, 'dependencies': move_logic.dependency_map_king(c, fen)}
+
+def update_attack_map(old_cell, new_cell, piece, fen, prev_fen):
+    global attack_map
+
+    moves_from_new_cell = move_logic.find_legal_from_cell(fen, prev_fen, new_cell)
+    if isinstance(moves_from_new_cell, tuple):
+        moves_from_new_cell = moves_from_new_cell[0]
+
+    for attacker in attack_map[old_cell]:
+        if attacker['piece'] == piece and attacker['attacking_cell'] == old_cell:
+            attack_map[old_cell].remove(attacker)
+
+    for move in moves_from_new_cell:
+        attack_map[move].append({'piece': piece, 'attacking_cell': new_cell})
+
+
+def update_dependency_map(old_cell, new_cell):
+    global dependency_map
+
+    pieces_to_update = []
+
+    for cell, data in dependency_map.items():
+        dependencies = data['dependencies']
+
+        if old_cell in dependencies or new_cell in dependencies:
+            pieces_to_update.append(cell)
+
+    print("Updated dependency for cells", pieces_to_update)
+
+
+
+
+
 
 
 if __name__ == '__main__':

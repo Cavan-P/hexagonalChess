@@ -134,3 +134,28 @@ def simulate_move(fen, start_cell, target_cell):
 
     #Otherwise, there's no check present
     return False
+
+def compare_fen(fen, prev_fen):
+    old_board = board_utils.initialize_board(prev_fen)
+    new_board = board_utils.initialize_board(fen)
+    old_cell = None
+    new_cell = None
+    moved_piece = None
+
+    for cell in old_board:
+        prev_piece = old_board[cell].occupied_by
+        curr_piece = new_board[cell].occupied_by
+
+        if prev_piece is not None and curr_piece is None:
+            old_cell = cell
+
+        elif prev_piece is None and curr_piece is not None:
+            new_cell = cell
+            moved_piece = curr_piece
+
+        elif prev_piece is not None and curr_piece is not None and prev_piece != curr_piece:
+            new_cell = cell
+            moved_piece = curr_piece
+
+    return old_cell, new_cell, moved_piece
+

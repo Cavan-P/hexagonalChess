@@ -497,6 +497,449 @@ def move_like_queen(starting_cell, fen, color):
 
     return valid_cells
 
+"""
+    Updated 'move like' functions to create dependency map (occupied cells should be opposite or friendly color)
+
+    COME BACK TO THIS (I think I'm going to be trying to move pieces out of the way of a pawn that is 'attacking' even
+    though it is simply moving forward and can't attack in that direction.  I could be wrong, experiment)
+
+    There may be an issue here with the cells in front of the pawn not being in the attack map, but I think that's fair since the
+    pawn can't 'attack' there, it simply can move there.  Keep an eye out for problemos
+"""
+
+def dependency_map_white_pawn(starting_cell, fen, prev_fen):
+    cells = board_utils.initialize_board(fen)
+    valid_cells = []
+
+    #Starting coordinates
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
+
+    #Necessary for checking if it's still on the starting cell of a friendly-colored pawn (and eventually promotion)
+    string_form_coords = str(start_coords[0]) + " " + str(start_coords[1]) + " " + str(start_coords[2])
+
+    #Cell values for each...
+    one_cell_forward = utils.get_cell_with_coordinates(start_coords[0], start_coords[1] - 1, start_coords[2] + 1, fen)
+    two_cells_forward = utils.get_cell_with_coordinates(start_coords[0], start_coords[1] - 2, start_coords[2] + 2, fen)
+    upper_left = utils.get_cell_with_coordinates(start_coords[0] - 1, start_coords[1], start_coords[2] + 1, fen)
+    upper_right = utils.get_cell_with_coordinates(start_coords[0] + 1, start_coords[1] - 1, start_coords[2], fen)
+
+    en_passant_target = get_two_cell_move_white_enpassant(prev_fen, fen)
+    en_passant_target_cell = None
+    en_passant_passed_pawn = None
+
+    #If the cell exists and it's not occupied...
+    if one_cell_forward != None and cells[one_cell_forward].occupied_by == None:
+        valid_cells.append(one_cell_forward)
+
+    if one_cell_forward != None and two_cells_forward != None and (cells[two_cells_forward].occupied_by == None) and (cells[one_cell_forward].occupied_by == None) and (string_form_coords in starting_white):
+        valid_cells.append(two_cells_forward)
+
+    #Since these cells could change attack map if it was occupied and is now not, or wasn't and now is, all I care
+    #about is that the cell exists
+    if upper_left != None:    
+       valid_cells.append(upper_left)
+
+    if upper_right != None:    
+       valid_cells.append(upper_right)
+
+    if (en_passant_target is not None) and (en_passant_target == upper_right or en_passant_target == upper_left):
+        valid_cells.append(en_passant_target)
+        en_passant_target_cell = en_passant_target or None
+        en_passant_passed_pawn = en_passant_target + 11
+
+
+    return (valid_cells, en_passant_target_cell, en_passant_passed_pawn)
+def dependency_map_black_pawn(starting_cell, fen, prev_fen):
+    cells = board_utils.initialize_board(fen)
+    valid_cells = []
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
+
+    string_form_coords = str(start_coords[0]) + " " + str(start_coords[1]) + " " + str(start_coords[2])
+
+    one_cell_forward = utils.get_cell_with_coordinates(start_coords[0], start_coords[1] + 1, start_coords[2] - 1, fen)
+    two_cells_forward = utils.get_cell_with_coordinates(start_coords[0], start_coords[1] + 2, start_coords[2] - 2, fen)
+    lower_left = utils.get_cell_with_coordinates(start_coords[0] - 1, start_coords[1] + 1, start_coords[2], fen)
+    lower_right = utils.get_cell_with_coordinates(start_coords[0] + 1, start_coords[1], start_coords[2] - 1, fen)
+
+    en_passant_target = get_two_cell_move_black_enpassant(prev_fen, fen)
+    #en_passant_target_coords = utils.get_coordinates_from_cell(en_passant_target) if en_passant_target != None else None
+    en_passant_target_cell = None
+    en_passant_passed_pawn = None
+
+
+    if one_cell_forward != None and cells[one_cell_forward].occupied_by == None:
+        valid_cells.append(one_cell_forward)
+
+    if one_cell_forward != None and two_cells_forward != None and (cells[two_cells_forward].occupied_by == None) and (cells[one_cell_forward].occupied_by == None) and (string_form_coords in starting_black):
+        valid_cells.append(two_cells_forward)
+
+    #Just gotta make sure the cell exists since any updated state in it could change attack map
+    if lower_left != None:    
+       valid_cells.append(lower_left)
+
+    if lower_right != None:    
+       valid_cells.append(lower_right)
+
+    if (en_passant_target != None) and (en_passant_target == lower_left or en_passant_target == lower_right):
+        valid_cells.append(en_passant_target)
+        en_passant_target_cell = en_passant_target or None
+        en_passant_passed_pawn = en_passant_target - 11
+    
+
+    return (valid_cells, en_passant_target_cell, en_passant_passed_pawn)
+
+"""
+    Just removed the constraint that a piece can't land on it's friendly color, since an update in this (occupied) cell
+    changes the attack map
+
+    True for the rest of the pieces
+"""
+def dependency_map_bishop(starting_cell, fen):
+    cells = board_utils.initialize_board(fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
+
+    valid_cells = []
+
+    '''Upper Right'''
+    upper_right_q = start_coords[0] + 1
+    upper_right_r = start_coords[1] - 2
+    upper_right_s = start_coords[2] + 1
+
+    moves = 1
+
+    while upper_right_q <= 5 and upper_right_r >= -5 and upper_right_s <= 5:
+        cell = utils.get_cell_with_coordinates(start_coords[0] + moves, start_coords[1] - (moves * 2), start_coords[2] + moves, fen)
+        
+        #If it's occupied, (we don't care by whom) append the cell and then prevent from moving to next cells.
+        #An update in the blocked cells won't matter if we can't get past the initial blocker
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        upper_right_q += 1
+        upper_right_r -= 2
+        upper_right_s += 1
+
+    '''Right'''
+    right_q = start_coords[0] + 2
+    right_r = start_coords[1] - 1
+    right_s = start_coords[2] - 1
+
+    moves = 1
+
+    while right_q <= 5 and right_r >= -5 and right_s >= -5:
+        cell = utils.get_cell_with_coordinates(start_coords[0] + (moves * 2), start_coords[1] - moves, start_coords[2] - moves, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        right_q += 2
+        right_r -= 1
+        right_s -= 1
+
+    '''Lower right'''
+    lower_right_q = start_coords[0] + 1
+    lower_right_r = start_coords[1] + 1
+    lower_right_s = start_coords[2] - 2
+
+    moves = 1
+
+    while lower_right_q <= 5 and lower_right_r <= 5 and lower_right_s >= -5:
+        cell = utils.get_cell_with_coordinates(start_coords[0] + moves, start_coords[1] + moves, start_coords[2] - (moves * 2), fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        lower_right_q += 1
+        lower_right_r += 1
+        lower_right_s -= 2
+
+    '''Lower left'''
+    lower_left_q = start_coords[0] - 1
+    lower_left_r = start_coords[1] + 2
+    lower_left_s = start_coords[2] - 1
+
+    moves = 1
+
+    while lower_left_q >= -5 and lower_left_r <= 5 and lower_left_s >= -5:
+        cell =  utils.get_cell_with_coordinates(start_coords[0] - moves, start_coords[1] + (moves * 2), start_coords[2] - moves, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        lower_left_q -= 1
+        lower_left_r += 2
+        lower_left_s -= 1
+
+    '''Left'''
+    left_q = start_coords[0] - 2
+    left_r = start_coords[1] + 1
+    left_s = start_coords[2] + 1
+
+    moves = 1
+
+    while left_q >= -5 and left_r <= 5 and left_s <= 5:
+        cell = utils.get_cell_with_coordinates(start_coords[0] - (moves * 2), start_coords[1] + moves, start_coords[2] + moves, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        left_q -= 2
+        left_r += 1
+        left_s += 1
+
+    '''Upper left'''
+    upper_left_q = start_coords[0] - 1
+    upper_left_r = start_coords[1] - 1
+    upper_left_s = start_coords[2] + 2
+
+    moves = 1
+
+    while upper_left_q >= -5 and upper_left_r >= -5 and upper_left_s <= 5:
+        cell = utils.get_cell_with_coordinates(start_coords[0] - moves, start_coords[1] - moves, start_coords[2] + (moves * 2), fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        upper_left_q -= 1
+        upper_left_r -= 1
+        upper_left_s += 2
+
+    return valid_cells
+def dependency_map_knight(starting_cell, fen):
+    cells = board_utils.initialize_board(fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
+
+    valid_cells = []
+
+    new_coords = [
+        #Forward
+        [1, -3, 2],#Right
+        [-1, -2, 3],#Left
+        
+        #Backward
+        [1, 2, -3],#Right
+        [-1, 3, -2],#Left
+        
+        #Upper right diagonal
+        [2, -3, 1],#Up
+        [3, -2, -1],#Down
+        
+        #Bottom right diagonal
+        [3, -1, -2],#Up
+        [2, 1, -3],#Down
+        
+        #Upper left diagonal
+        [-2, -1, 3],#Up
+        [-3, 1, 2],#Down
+        
+        #Bottom left diagonal
+        [-3, 2, 1],#Up
+        [-2, 3, -1]#Down
+    ]
+
+    
+    for j in range(len(new_coords)):
+        target_cell = utils.get_cell_with_coordinates(start_coords[0] + new_coords[j][0], start_coords[1] + new_coords[j][1], start_coords[2] + new_coords[j][2], fen)
+
+        if target_cell is not None and cells[target_cell] is not None:
+            valid_cells.append(target_cell)
+
+    return valid_cells
+def dependency_map_rook(starting_cell, fen):
+    cells = board_utils.initialize_board(fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
+    q = start_coords[0]
+    r = start_coords[1]
+    s = start_coords[2]
+
+    valid_cells = []
+
+    '''Upper Left'''
+    upper_left_q = q - 1
+    upper_left_s = s + 1
+
+    moves = 1
+
+    while upper_left_q >= -5 and upper_left_s <= 5:
+        cell = utils.get_cell_with_coordinates(q - moves, r, s + moves, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        upper_left_q -= 1
+        upper_left_s += 1
+
+    '''Forward'''
+
+    up_r = r - 1
+    up_s = s + 1
+
+    moves = 1
+
+    while up_r >= -5 and up_s <= 5:
+        cell = utils.get_cell_with_coordinates(q, r - moves, s + moves, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        up_r -= 1
+        up_s += 1
+
+    '''Upper Right'''
+
+    upper_right_q = q + 1
+    upper_right_r = r - 1
+
+    moves = 1
+
+    while upper_right_q <= 5 and upper_right_r >= -5:
+        cell = utils.get_cell_with_coordinates(q + moves, r - moves, s, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        upper_right_q += 1
+        upper_right_r -= 1
+
+    '''Lower Right'''
+
+    lower_right_q = q + 1
+    lower_right_s = s - 1
+
+    moves = 1
+
+    while lower_right_q <= 5 and lower_right_s >= -5:
+        cell = utils.get_cell_with_coordinates(q + moves, r, s - moves, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        lower_right_q += 1
+        lower_right_s -= 1
+
+    '''Bottom'''
+
+    b_r = r + 1
+    b_s = s - 1
+
+    moves = 1
+
+    while b_r <= 5 and b_s >= -5:
+        cell = utils.get_cell_with_coordinates(q, r + moves, s - moves, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        b_r += 1
+        b_s -= 1
+
+    '''Bottom left'''
+
+    bottom_left_q = q - 1
+    bottom_left_r = r + 1
+
+    moves = 1
+
+    while bottom_left_q >= -5 and bottom_left_r <= 5:
+        cell = utils.get_cell_with_coordinates(q - moves, r + moves, s, fen)
+
+        if cell is not None and cells[cell].occupied_by is not None:
+            valid_cells.append(cell)
+            break
+
+        valid_cells.append(cell)
+
+        moves += 1
+        bottom_left_q -= 1
+        bottom_left_r += 1
+
+    return valid_cells
+def dependency_map_king(starting_cell, fen):
+    cells = board_utils.initialize_board(fen)
+    start_coords = utils.get_coordinates_from_cell(starting_cell, fen)
+
+    valid_cells = []
+
+    new_coords = [
+        [0, -1, 1],  #Forward
+        [0, 1, -1],  #Backward
+        [1, -1, 0],  #Upper right
+        [1, 0, -1],  #Lower right
+        [-1, 0, 1],  #Upper left
+        [-1, 1, 0],  #Lower left
+        [-1, -1, 2], #Upper left diagonal
+        [1, -2, 1],  #Upper right diagonal
+        [2, -1, -1], #Right diagonal
+        [1, 1, -2],  #Lower right diagonal
+        [-1, 2, -1], #Lower left diagonal
+        [-2, 1, 1],  #Left diagonal
+    ]
+
+    
+    for j in range(len(new_coords)):
+        target_cell = utils.get_cell_with_coordinates(start_coords[0] + new_coords[j][0], start_coords[1] + new_coords[j][1], start_coords[2] + new_coords[j][2], fen)
+
+        if target_cell is not None and cells[target_cell] is not None:
+            valid_cells.append(target_cell)
+
+    return valid_cells
+def dependency_map_queen(starting_cell, fen):
+    valid_cells = []
+
+    bishop_moves = dependency_map_bishop(starting_cell, fen)
+    rook_moves = dependency_map_rook(starting_cell, fen)
+
+    valid_cells = bishop_moves + rook_moves
+
+    return valid_cells
+
+"""
+    Determine if a pawn moved two cells in the previous move to check for en passant logic
+"""
 def get_two_cell_move_black_enpassant(prev_fen, current_fen):
 
     #Used for checking if one pawn moved two cells in the last move
@@ -520,7 +963,6 @@ def get_two_cell_move_black_enpassant(prev_fen, current_fen):
 
     #If so, the target cell for en passant is in between them
     return en_passant_target_cell
-
 def get_two_cell_move_white_enpassant(prev_fen, current_fen):
     previous_cells = board_utils.initialize_board(prev_fen)
     current_cells = board_utils.initialize_board(current_fen)
@@ -541,7 +983,6 @@ def get_two_cell_move_white_enpassant(prev_fen, current_fen):
         
 
     return en_passant_target_cell
-
 
 """
     Find all legal moves for any piece type (all legal moves for both knights, both bishops, all pawns, etc)
@@ -676,6 +1117,10 @@ def find_all_legal(fen, prev_fen, piece):
 def find_legal_from_cell(fen, prev_fen, cell):
     cells = board_utils.initialize_board(fen)
     piece = cells[cell].occupied_by
+
+    if not piece:
+        return []
+
     is_white = piece.isupper()
 
     if piece == 'P' or piece == 'p':

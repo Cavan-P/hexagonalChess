@@ -2,7 +2,6 @@ import board_utils
 import move_logic
 import copy
 
-
 """
     Get coordinate for specific cell number
 """
@@ -11,8 +10,6 @@ def get_coordinates_from_cell(num, fen):
     cells = board_utils.initialize_board(fen)
 
     return (cells[num].q, cells[num].r, cells[num].s) if cells[num] is not None else None
-
-
 
 """
     Testing that each cell is assigned the proper coordinates
@@ -25,7 +22,6 @@ def get_cell_with_coordinates(q, r, s, fen):
            return cells[cell].num
         
     return None
-
 
 """
     Determines if either king is in check in a given FEN

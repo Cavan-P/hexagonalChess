@@ -5,6 +5,7 @@ import brain
 import random
 import utils
 import move_logic
+from pprint import pprint
 
 
 app = Flask(__name__, static_folder='../static')
@@ -17,9 +18,6 @@ def serve_index():
 @app.route('/<path:path>')
 def serve_static_file(path):
     return send_from_directory(app.static_folder, path)
-
-attack_map = [{} for _ in range(91)]
-dependency_map = {}
 
 @app.route('/find_legal_moves', methods=['POST'])
 def find_legal_moves():
@@ -120,6 +118,21 @@ def drop_check():
     #Send back the color that is in check, and whether or not this color has any legal moves on the board
     return jsonify({'check': check, 'movesExist': moves_exist})
 
+values = {
+    'p': 1,
+    'b': 3,
+    'n': 3,
+    'r': 5,
+    'q': 9,
+    'k': 9999
+}
+
+#List of every cell, holds what cell it can be reached by and what piece is occupying that cell
+attack_map = [[] for _ in range(91)]
+
+#List of every OCCUPIED cell, holds ALL cells it could theoretically reach if board is empty
+dependency_map = []
+
 
 @app.route('/computer_move', methods=['POST'])
 def computer_move():
@@ -127,6 +140,20 @@ def computer_move():
     fen = data['fen']
     prev_fen = data['prevFen']
     cells = board_utils.initialize_board(fen)
+
+    for cell in cells:
+        #`cell` is only cell number
+        moves_from_cell = move_logic.find_legal_from_cell(fen, prev_fen, cell)
+        piece_on_cell = cells[cell].occupied_by
+        #print(piece_on_cell)
+        if isinstance(moves_from_cell, tuple):
+            moves_from_cell = moves_from_cell[0]
+
+        for move in moves_from_cell:
+            attack_map[move].append({'piece': piece_on_cell, 'attacking_cell': cell})
+
+    pprint(attack_map)
+
 
     # Get all black pieces currently on the board
     living_black_pieces = {char for char in fen if char.islower()}
@@ -171,8 +198,6 @@ def computer_move():
     # If no legal moves are found for any piece, return message indicating likely stalemate or checkmate
     return jsonify({'message': 'No legal moves available - likely checkmate or stalemate'})
 
-def initalize_attack_map():
-    pass
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
